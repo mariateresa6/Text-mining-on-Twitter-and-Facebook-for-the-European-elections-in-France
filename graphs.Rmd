@@ -1,0 +1,253 @@
+---
+title: "Graph"
+author: "Enrico D'Orso"
+date: "2024-06-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(tidyverse)
+library(lubridate)
+library(gridExtra)
+library(readxl)
+library(ggplot2)
+library(dplyr)
+
+```
+
+```{r}
+# Leggi il file Excel e seleziona solo le prime 5 colonne
+post_ts <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 2) %>%
+  select(1:5)
+
+# Converti la colonna 'Date' in formato Date
+post_ts$Date <- as.Date(post_ts$Date)
+
+# Standardizza i nomi dei partiti
+post_ts$Profile[post_ts$Profile %in% 'FranceInsoumise'] <- 'France_Insoumise'
+post_ts$Profile[post_ts$Profile %in%  'Parti Socialiste'] <- 'Parti_Socialiste'
+post_ts$Profile[post_ts$Profile %in%  'les Républicains'] <- 'Les_Republicains'
+post_ts$Profile[post_ts$Profile %in%  'EELV'] <- 'Les_Verts'
+post_ts$Profile[post_ts$Profile %in%  'Place publique'] <- 'Place_Publique'
+post_ts$Profile[post_ts$Profile %in%  'RECONQUÊTE'] <- 'Reconquete'
+post_ts$Profile[post_ts$Profile %in%  'Rassemblement National'] <- 'Rassemblement_National'
+post_ts$Profile[post_ts$Profile %in%  'La France insoumise'] <- 'France_Insoumise'
+post_ts$Profile[post_ts$Profile %in%  'partisocialiste'] <- 'Parti_Socialiste'
+post_ts$Profile[post_ts$Profile %in%  'lesRepublicains'] <- 'Les_Republicains'
+post_ts$Profile[post_ts$Profile %in%  'Europe Écologie-Les Verts'] <- 'Les_Verts'
+post_ts$Profile[post_ts$Profile %in%  'placepublique_'] <- 'Place_Publique'
+post_ts$Profile[post_ts$Profile %in%  'Reconquete_off'] <- 'Reconquete'
+post_ts$Profile[post_ts$Profile %in%  'RNational_off'] <- 'Rassemblement_National'
+
+# Rimuovi le righe con valori NA nella colonna 'Post interaction rate'
+post_ts <- post_ts %>% drop_na(`Post interaction rate`)
+
+# Converti 'Post interaction rate' in numerico rimuovendo il simbolo di percentuale e moltiplicando per 100
+post_ts$`Post interaction rate` <- as.numeric(sub("%", "", post_ts$`Post interaction rate`)) * 100
+
+# Calcola la somma giornaliera del 'Post interaction rate' per ciascuna piattaforma
+daily_avg <- post_ts %>%
+  group_by(Date, Network) %>%
+  summarize(sum_interaction_rate = sum(`Post interaction rate`))
+
+# Crea il grafico della serie storica con ggplot
+ggplot(daily_avg, aes(x = Date, y = sum_interaction_rate, color = Network)) +
+  geom_line() +
+  scale_color_manual(values = c("TWITTER" = "blue", "FACEBOOK" = "deepskyblue")) +
+  labs(title = "Daily Average Post Interaction Rate",
+       x = "Date",
+       y = "Average Interaction Rate %",
+       color = "Platform") +
+  theme_minimal()
+
+
+
+```
+
+```{r}
+
+# Definisci una funzione per creare grafici di serie storiche per ciascun partito
+plot_party_ts <- function(data, party_name) {
+  ggplot(data, aes(x = Date, y = `Post interaction rate`, color = Network)) +
+    geom_line() +
+    scale_color_manual(values = c("TWITTER" = "deepskyblue", "FACEBOOK" = "blue")) +
+    labs(title = paste("Interaction Rate Over Time for", party_name),
+         x = "Date",
+         y = "Interaction Rate %",
+         color = "Network") +
+    theme_minimal()
+}
+
+
+party_names <- unique(post_ts$Profile)
+
+# Chiamata della funzione per ogni partito
+for (party in party_names) {
+  party_data <- filter(post_ts, Profile == party)
+  plot <- plot_party_ts(party_data, party)
+  print(plot)
+}
+
+```
+
+```{r}
+
+interazioni <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 3)
+
+# Standardizza i nomi dei partiti
+interazioni$Profile[interazioni$Profile %in% 'FranceInsoumise'] <- 'France_Insoumise'
+interazioni$Profile[interazioni$Profile %in%  'Parti Socialiste'] <- 'Parti_Socialiste'
+interazioni$Profile[interazioni$Profile %in%  'les Républicains'] <- 'Les_Republicains'
+interazioni$Profile[interazioni$Profile %in%  'EELV'] <- 'Les_Verts'
+interazioni$Profile[interazioni$Profile %in%  'Place publique'] <- 'Place_Publique'
+interazioni$Profile[interazioni$Profile %in%  'RECONQUÊTE'] <- 'Reconquete'
+interazioni$Profile[interazioni$Profile %in%  'Rassemblement National'] <- 'Rassemblement_National'
+interazioni$Profile[interazioni$Profile %in%  'La France insoumise'] <- 'France_Insoumise'
+interazioni$Profile[interazioni$Profile %in%  'partisocialiste'] <- 'Parti_Socialiste'
+interazioni$Profile[interazioni$Profile %in%  'lesRepublicains'] <- 'Les_Republicains'
+interazioni$Profile[interazioni$Profile %in%  'Europe Écologie-Les Verts'] <- 'Les_Verts'
+interazioni$Profile[interazioni$Profile %in%  'placepublique_'] <- 'Place_Publique'
+interazioni$Profile[interazioni$Profile %in%  'Reconquete_off'] <- 'Reconquete'
+interazioni$Profile[interazioni$Profile %in%  'RNational_off'] <- 'Rassemblement_National'
+
+
+# Dividiamo la colonna "Profile" in due nuove colonne "giorno" e "orario"
+interazioni <- transform(interazioni, 
+                giorno = as.integer(sub("_.*", "", Profile)),
+                orario = as.integer(sub(".*_", "", Profile)))
+
+# Visualizziamo il dataframe risultante
+print(interazioni)
+
+# Rimuovi le righe con valori NA nella colonna 'Post interaction rate'
+interazioni <- interazioni %>% drop_na(`Post.interaction.rate`)
+
+# Assicurarsi che 'Post.interaction.rate' sia numerico
+interazioni$`Post.interaction.rate` <- as.numeric(sub("%", "", interazioni$`Post.interaction.rate`)) * 100
+
+summary(interazioni)
+
+# Sostituisci i valori mancanti nella colonna 'Post.interaction.rate' con la media
+interazioni$Post.interaction.rate[is.na(interazioni$Post.interaction.rate)] <- mean(interazioni$Post.interaction.rate, na.rm = TRUE)
+
+
+ggplot(interazioni, aes(x = giorno, y = orario)) +
+  geom_point(aes(size = Number.of.posts, color = Post.interaction.rate)) +
+  scale_size_continuous(name = "Number of Posts", range = c(3, 10)) +  # Cambia il range per ingrandire i punti
+  scale_color_gradient(name = "Post Interaction Rate", low = "red", high = "green") +
+  scale_x_continuous(breaks = seq(min(interazioni$giorno), max(interazioni$giorno), by = 1)) +  # Mostra tutti i numeri sull'asse x
+  labs(x = "Day", y = "Time", title = "Best time to post") +
+  theme_minimal()
+
+
+
+```
+
+```{r}
+content_data <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 11)
+
+# Converti la colonna 'Post interaction rate' in numerico rimuovendo il simbolo di percentuale e moltiplicando per 100
+content_data$`Post interaction rate` <- as.numeric(sub("%", "", content_data$`Post interaction rate`)) * 100
+
+# Crea un grafico a barre utilizzando ggplot
+ggplot(content_data, aes(x = Profile, y = `Post interaction rate`)) +
+  geom_bar(stat = "identity", fill = 'red') +  # Usa 'fill' per colorare le barre
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(title = "Post Interaction Rate by Content Type",
+       x = "Content Type",
+       y = "Post Interaction Rate") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+
+```{r}
+
+post_ts <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 1)
+
+# Standardizza i nomi dei partiti
+post_ts$Profile[post_ts$Profile %in% 'FranceInsoumise'] <- 'France_Insoumise'
+post_ts$Profile[post_ts$Profile %in%  'Parti Socialiste'] <- 'Parti_Socialiste'
+post_ts$Profile[post_ts$Profile %in%  'les Républicains'] <- 'Les_Republicains'
+post_ts$Profile[post_ts$Profile %in%  'EELV'] <- 'Les_Verts'
+post_ts$Profile[post_ts$Profile %in%  'Place publique'] <- 'Place_Publique'
+post_ts$Profile[post_ts$Profile %in%  'RECONQUÊTE'] <- 'Reconquete'
+post_ts$Profile[post_ts$Profile %in%  'Rassemblement National'] <- 'Rassemblement_National'
+post_ts$Profile[post_ts$Profile %in%  'La France insoumise'] <- 'France_Insoumise'
+post_ts$Profile[post_ts$Profile %in%  'partisocialiste'] <- 'Parti_Socialiste'
+post_ts$Profile[post_ts$Profile %in%  'lesRepublicains'] <- 'Les_Republicains'
+post_ts$Profile[post_ts$Profile %in%  'Europe Écologie-Les Verts'] <- 'Les_Verts'
+post_ts$Profile[post_ts$Profile %in%  'placepublique_'] <- 'Place_Publique'
+post_ts$Profile[post_ts$Profile %in%  'Reconquete_off'] <- 'Reconquete'
+post_ts$Profile[post_ts$Profile %in%  'RNational_off'] <- 'Rassemblement_National'
+
+post_ts$`Number of Reactions, Comments & Shares` <- as.numeric(as.character(post_ts$`Number of Reactions, Comments & Shares`))
+
+# Crea un grafico a barre utilizzando ggplot
+ggplot(post_ts, aes(x = Profile, y = `Number of Reactions, Comments & Shares`)) +
+  geom_bar(stat = "identity", fill = 'blue') +
+  labs(title = "Number of Reactions, Comments & Shares by Party",
+       x = "Party",
+       y = "Number of Reactions, Comments & Shares") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = -35, vjust = 1, hjust = 0.2))
+
+```
+
+
+
+
+
+
+
+```{r}
+library(tidyverse)
+
+likes <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 1)
+
+likes$Profile[likes$Profile %in% 'FranceInsoumise'] <- 'France_Insoumise'
+likes$Profile[likes$Profile %in%  'Parti Socialiste'] <- 'Parti_Socialiste'
+likes$Profile[likes$Profile %in%  'les Républicains'] <- 'Les_Republicains'
+likes$Profile[likes$Profile %in%  'EELV'] <- 'Les_Verts'
+likes$Profile[likes$Profile %in%  'Place publique'] <- 'Place_Publique'
+likes$Profile[likes$Profile %in%  'RECONQUÊTE'] <- 'Reconquete'
+likes$Profile[likes$Profile %in%  'Rassemblement National'] <- 'Rassemblement_National'
+likes$Profile[likes$Profile %in%  'La France insoumise'] <- 'France_Insoumise'
+likes$Profile[likes$Profile %in%  'partisocialiste'] <- 'Parti_Socialiste'
+likes$Profile[likes$Profile %in%  'lesRepublicains'] <- 'Les_Republicains'
+likes$Profile[likes$Profile %in%  'Europe Écologie-Les Verts'] <- 'Les_Verts'
+likes$Profile[likes$Profile %in%  'placepublique_'] <- 'Place_Publique'
+likes$Profile[likes$Profile %in%  'Reconquete_off'] <- 'Reconquete'
+likes$Profile[likes$Profile %in%  'RNational_off'] <- 'Rassemblement_National'
+
+summary(likes)
+
+# Carica i dati e trasforma le colonne in numerico
+likes = likes %>% 
+  mutate(like = as.numeric(`Number of Likes`), 
+         commenti = as.numeric(`Number of comments`), 
+         shares = as.numeric(`Number of Reactions, Comments & Shares`))
+
+# Creare il boxplot per i Likes
+ggplot(likes, aes(x = Profile, y = like)) +
+  geom_boxplot(fill = 'red') +
+  theme_minimal() +
+  xlab(NULL) +
+  labs() +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0, hjust=0), legend.position = "none")
+
+# Creare il boxplot per i Comments
+ggplot(likes, aes(x = Profile, y = commenti)) +
+  geom_boxplot(fill = 'blue') +
+  theme_minimal() +
+  xlab(NULL) +
+  labs() +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0, hjust=0), legend.position = "none")
+```
+

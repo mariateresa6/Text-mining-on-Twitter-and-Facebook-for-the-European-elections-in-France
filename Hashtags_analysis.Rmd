@@ -1,0 +1,258 @@
+---
+title: "Hashtag_analisys"
+author: "Enrico D'Orso"
+date: "2024-05-09"
+output: html_document
+---
+
+## Hashtag analysis
+```{r}
+library(readxl)
+library(readxl)
+library(tm)
+library(textstem)
+library(dplyr)
+library(ggplot2)
+library(tm)
+library(igraph)
+library(tidygraph)
+library(ggraph)
+library(wordcloud)
+library(RColorBrewer)
+library(tidyverse)
+library(igraph)
+
+#importo i dati
+df <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 1)
+corpus <- Corpus(VectorSource(df$Message))
+
+```
+
+Graphical Analysis of Top 50 Hashtags: Bar Chart and Horizontal Bar Chart
+```{r}
+
+top_50_hashtag <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = "Top 50 Hashtags Post ...", skip = 4)
+
+colori <- rep("red", 50)
+top_50_hashtag <- top_50_hashtag[order(-top_50_hashtag$value),]
+grafico <- ggplot(data = top_50_hashtag, aes(x = reorder(Profile, -value), y = value, fill = Profile)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Top 50 hashtags",
+       x = "Profile",
+       y = "Value") +
+  theme(legend.position = "none", 
+        axis.text.x = element_text(angle = -45, vjust = 0.5, hjust=0))
+
+# Imposta il colore dei bar
+grafico + scale_fill_manual(values = colori)
+
+
+```
+
+remane the column 'Profile'
+```{r}
+table(df$Profile)
+df$Profile[df$Profile %in% 'FranceInsoumise'] <- 'France_Insoumise'
+df$Profile[df$Profile %in%  'Parti Socialiste'] <- 'Parti_Socialiste'
+df$Profile[df$Profile %in%  'les Républicains'] <- 'Les_Republicains'
+df$Profile[df$Profile %in%  'EELV'] <- 'Les_Verts'
+df$Profile[df$Profile %in%  'Place publique'] <- 'Place_Publique'
+df$Profile[df$Profile %in%  'RECONQUÊTE'] <- 'Reconquete'
+df$Profile[df$Profile %in%  'Rassemblement National'] <- 'Rassemblement_National'
+df$Profile[df$Profile %in%  'La France insoumise'] <- 'France_Insoumise'
+df$Profile[df$Profile %in%  'partisocialiste'] <- 'Parti_Socialiste'
+df$Profile[df$Profile %in%  'lesRepublicains'] <- 'Les_Republicains'
+df$Profile[df$Profile %in%  'Europe Écologie-Les Verts'] <- 'Les_Verts'
+df$Profile[df$Profile %in%  'placepublique_'] <- 'Place_Publique'
+df$Profile[df$Profile %in%  'Reconquete_off'] <- 'Reconquete'
+df$Profile[df$Profile %in%  'RNational_off'] <- 'Rassemblement_National'
+
+#aggiungo un etichetta ai nomi dei partiti in base al network dell'hashtag
+
+df$Profile <- ifelse(df$Network == "FACEBOOK", paste0(df$Profile, "_f"),
+                     ifelse(df$Network == "TWITTER", paste0(df$Profile, "_t"), df$Profile))
+
+table(df$Profile)
+```
+
+functions
+```{r}
+keep_hashtag_words <- function(text) {
+  hashtags <- gsub(".*(#\\w+).*", "\\1", text) #remove words that are not in the hashtags
+  text <- gsub("(^|\\s)(?!#\\w+\\b)\\S+", "", text, perl = TRUE)
+  return(text)
+}
+remove_urls <- function(text) {
+  text <- gsub("(f|ht)tp(s?)://[^ ]+", "", text) #remove urls and links
+  text <- gsub("bit\\.ly/\\w+", "", text)
+  return(text)
+}
+remove_function <-content_transformer(function(x, pattern) gsub(pattern,' ',x))
+splitWords <- function(doc) {
+  unlist(strsplit(as.character(doc), " "))
+}
+remove_non_hashtag_numbers <- function(text) {
+  non_hashtag_numbers <- gsub("\\b\\d+\\b(?!#)", "", text, perl = TRUE)
+  text <- gsub("\\b\\d+\\b(?!#)", "", text, perl = TRUE)
+  return(text)
+}
+normalize_accents <- function(x) {
+  x <- chartr(
+    "áéíóúÁÉÍÓÚàèìòùÀÈÌÒÙâêîôûÂÊÎÔÛäëïöüÄËÏÖÜãõñÃÕÑçÇ",
+    "aeiouAEIOUaeiouAEIOUaeiouAEIOUaeiouAEIOUaonAOncC",
+    x
+  )
+  return(x)
+}
+
+
+```
+
+## taking the hashtags from each post
+```{r}
+suppressWarnings({
+corpus <- tm_map(corpus, content_transformer(remove_urls))
+corpus <- tm_map(corpus, content_transformer(keep_hashtag_words))
+corpus <- tm_map(corpus, content_transformer(function(x) gsub("[[:punct:]]", "", x)))
+corpus <- tm_map(corpus, content_transformer(function(x) gsub("\\s+", " ", x)))
+corpus <- tm_map(corpus, remove_function, "\r\n\r\n")
+corpus <- tm_map(corpus, remove_function, "\r\n")
+corpus <- tm_map(corpus, remove_function, "\r")
+corpus <- tm_map(corpus, remove_function, "\n")
+corpus <- tm_map(corpus, content_transformer(remove_non_hashtag_numbers))
+corpus <- tm_map(corpus, remove_function, "#")
+corpus <- tm_map(corpus, content_transformer(normalize_accents))
+corpus <- tm_map(corpus, content_transformer(tolower))
+})
+
+```
+
+The tidied corpus 
+```{r}
+
+#traformo il mio corpus in un dataframe
+
+corpus_content <- sapply(corpus, as.character)
+new_df <- data.frame(Corpus = corpus_content, Profile = df$Profile)
+
+```
+
+## Network Hashtags-Hashtags
+(view the photo that I've done with gephi too)
+```{r}
+corpus_content <- sapply(corpus, as.character)
+hashtags_df <- data.frame(hashtags = corpus_content)
+
+# Estrazione degli hashtag e creazione delle coppie di hashtag
+edges <- hashtags_df %>%
+  mutate(hashtags = strsplit(as.character(hashtags), "\\s+")) %>%  # Suddivisione per spazi
+  filter(lengths(hashtags) >= 2) %>%  # Filtra i post con almeno due hashtag
+  rowwise() %>%
+  mutate(pairs = list(combn(hashtags, 2, simplify = FALSE))) %>%
+  unnest(pairs) %>%
+  unnest_wider(pairs, names_sep = "_") %>%
+  rename(Source = pairs_1, Target = pairs_2) %>%
+  select(-hashtags)  # Rimuove la colonna originale degli hashtag
+
+# Visualizzazione del dataframe con source e target
+print(edges)
+
+# Scarico in Excel il dataframe
+excel_file <- "Hashtags_x2.xlsx"
+write.xlsx(edges, excel_file)
+```
+
+## Network Hashtags-Profile
+(view the photo that I've done with gephi too)
+```{r}
+# Dividere il contenuto della colonna 'Corpus' in parole individuali usando uno o più spazi come separatore
+split_corpus <- strsplit(new_df$Corpus, "\\s+")
+
+# Creare un nuovo data frame con le parole separate e mantenere il profilo associato a ogni parola
+new_df_split <- data.frame(
+  Corpus = unlist(split_corpus),
+  Profile = rep(new_df$Profile, sapply(split_corpus, length))
+)
+
+# Rimuovere le righe in cui 'Corpus' è vuoto
+new_df_split <- new_df_split[new_df_split$Corpus != "", ]
+
+# Rimuovere le righe con valori NA
+new_df_split <- na.omit(new_df_split)
+
+# Filtrare le righe in cui la parola 'Corpus' contiene "europe"
+final_df <- new_df_split %>%
+  filter(!grepl("europe", Corpus)) 
+
+# Sostituire parole specifiche con altre più brevi
+final_df$Corpus <- gsub("avecbardella", "bardella", final_df$Corpus)
+final_df$Corpus <- gsub("faceajordanbardella", "bardella", final_df$Corpus)
+final_df$Corpus <- gsub("avecmanon", "manon", final_df$Corpus)
+final_df$Corpus <- gsub("avecboyard", "boyard", final_df$Corpus)
+final_df$Corpus <- gsub("avecbellamy", "bellamy", final_df$Corpus)
+final_df$Corpus <- gsub("votezmarion", "marion", final_df$Corpus)
+
+# Mantenere solo le parole che appaiono più di 1 volta
+final_df <- final_df %>% group_by(Corpus) %>% filter(n() > 1)
+
+# Raggruppare le parole per 'Corpus', calcolare il numero di occorrenze di ogni parola e ordinare il risultato in ordine decrescente
+final_counts <- final_df %>%
+  group_by(Corpus) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+print(final_counts)
+
+```
+Convert the new dataframe in xlsx
+```{r}
+
+#scarico in excel il mio dataframe
+
+library(openxlsx)
+excel_file <- "Hashtags.xlsx"
+write.xlsx(final_df, excel_file)
+
+```
+
+## barplots for hashtags frequency
+```{r}
+final_df <- final_df %>%
+  mutate(Profile_Base = gsub("_(f|t)$", "", Profile))
+
+
+# Raggruppa il dataframe per "Profile_Base" e splitta in sottogruppi
+sotto_dataset <- final_df %>%
+  group_by(Profile_Base) %>%
+  group_split()
+
+
+# Creazione dei grafici a barre
+for (i in 1:length(sotto_dataset)) {
+  dataset <- sotto_dataset[[i]]
+  if (nrow(dataset) > 0) {
+    freq <- table(dataset$Corpus)
+    freq_df <- as.data.frame(freq)
+    freq_df <- freq_df[order(-freq_df$Freq), ]
+    colnames(freq_df) <- c("Corpus", "Frequency")
+    freq_df <- freq_df[freq_df$Frequency > 1, ]
+    if (nrow(freq_df) > 0) {
+      # Imposta lo stesso colore per tutte le colonne dello stesso barchart
+      colori <- rep(rainbow(length(levels(as.factor(freq_df$Corpus)))), each = nrow(freq_df))
+      profile_name <- dataset$Profile_Base[1]
+      # Crea il grafico a barre utilizzando ggplot2
+      grafico <- ggplot(data = freq_df, aes(x = reorder(Corpus, -Frequency), y = Frequency, fill = Corpus)) +
+        geom_bar(stat = "identity") +
+        scale_fill_manual(values = colori) +  # Imposta i colori delle colonne
+        labs(title = paste("Bar Chart for", profile_name),
+             x = "Corpus",
+             y = "Frequency") +
+        theme_minimal() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1),
+              legend.position = "none") 
+      print(grafico)
+    }
+  }
+}
+
+```

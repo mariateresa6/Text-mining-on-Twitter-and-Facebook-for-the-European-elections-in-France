@@ -1,0 +1,279 @@
+---
+title: "mention_analisys"
+author: "Melania Uccello"
+date: "2024-05-09"
+output: html_document
+---
+## Mentions analysis
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(readxl)
+library(tm)
+library(textstem)
+library(dplyr)
+library(ggplot2)
+library(tm)
+library(igraph)
+library(tidygraph)
+library(ggraph)
+library(wordcloud)
+library(RColorBrewer)
+library(tidyverse)
+library(igraph)
+```
+
+```{r}
+df <-  read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 1)
+
+corpus <- Corpus(VectorSource(df$Message))
+
+```
+
+Replacing specific values in the Profile column of the data frame df and modifying Profile column based on Network column values
+```{r}
+table(df$Profile)
+
+df$Profile[df$Profile %in% 'FranceInsoumise'] <- 'France_Insoumise'
+df$Profile[df$Profile %in%  'Parti Socialiste'] <- 'Parti_Socialiste'
+df$Profile[df$Profile %in%  'les Républicains'] <- 'Les_Republicains'
+df$Profile[df$Profile %in%  'EELV'] <- 'Les_Verts'
+df$Profile[df$Profile %in%  'Place publique'] <- 'Place_Publique'
+df$Profile[df$Profile %in%  'RECONQUÊTE'] <- 'Reconquete'
+df$Profile[df$Profile %in%  'Rassemblement National'] <- 'Rassemblement_National'
+df$Profile[df$Profile %in%  'La France insoumise'] <- 'France_Insoumise'
+df$Profile[df$Profile %in%  'partisocialiste'] <- 'Parti_Socialiste'
+df$Profile[df$Profile %in%  'lesRepublicains'] <- 'Les_Republicains'
+df$Profile[df$Profile %in%  'Europe Écologie-Les Verts'] <- 'Les_Verts'
+df$Profile[df$Profile %in%  'placepublique_'] <- 'Place_Publique'
+df$Profile[df$Profile %in%  'Reconquete_off'] <- 'Reconquete'
+df$Profile[df$Profile %in%  'RNational_off'] <- 'Rassemblement_National'
+
+df$Profile <- ifelse(df$Network == "FACEBOOK", paste0(df$Profile, "_f"),
+                     ifelse(df$Network == "TWITTER", paste0(df$Profile, "_t"), df$Profile))
+
+table(df$Profile)
+```
+
+functions
+```{r}
+#Function to keep only words with mentions in a given text
+keep_menzione_words <- function(text) {
+  # Find all words with mention
+  mentions <- gsub(".*(@\\w+).*", "\\1", text)
+  # Removes all text except words with mentions
+  text <- gsub("(^|\\s)(?!@\\w+\\b)\\S+", "", text, perl = TRUE)
+  return(text)
+}
+
+#Function to remove URLs and links from a given text
+remove_urls <- function(text) {
+  text <- gsub("(f|ht)tp(s?)://[^ ]+", "", text) #remove url and links
+  text <- gsub("bit\\.ly/\\w+", "", text)
+  return(text)
+}
+
+# Function to remove specific patterns from text using content_transformer
+remove_function <-content_transformer(function(x, pattern) gsub(pattern,' ',x))
+# Function to split words in a given document
+splitWords <- function(doc) {
+  unlist(strsplit(as.character(doc), " "))
+}
+
+# Function to remove numbers from text that are not part of mentions
+remove_non_menzione_numbers <- function(text) {
+  # Find all numbers in the text that are not part of a mention
+  remove_non_menzione_numbers <- gsub("\\b\\d+\\b(?!@)", "", text, perl = TRUE)
+  # Remove non-mention numbers from the text
+  text <- gsub("\\b\\d+\\b(?!@)", "", text, perl = TRUE)
+  return(text)
+}
+
+```
+
+taking only the mentions from each post
+```{r}
+suppressWarnings({
+corpus <- tm_map(corpus, content_transformer(tolower))
+# Removing URLs from the corpus using the remove_urls function
+corpus <- tm_map(corpus, content_transformer(remove_urls))
+# Keeping only words with mentions in the corpus using the keep_menzione_words function
+corpus <- tm_map(corpus, content_transformer(keep_menzione_words))
+
+# Removing punctuation from the corpus
+corpus <- tm_map(corpus, content_transformer(function(x) gsub("[[:punct:]]", "", x)))
+
+# Removing extra spaces from the corpus
+corpus <- tm_map(corpus, content_transformer(function(x) gsub("\\s+", " ", x)))
+
+# Removing carriage return and new line characters from the corpus
+corpus <- tm_map(corpus, remove_function, "\r\n\r\n")
+corpus <- tm_map(corpus, remove_function, "\r\n")
+corpus <- tm_map(corpus, remove_function, "\r")
+corpus <- tm_map(corpus, remove_function, "\n")
+
+# Removing non-mention numbers from the corpus using the remove_non_menzione_numbers function
+corpus <- tm_map(corpus, content_transformer(remove_non_menzione_numbers))
+# Removing '@' symbols from the corpus
+corpus <- tm_map(corpus, remove_function, "@")
+#corpus <- tm_map(corpus, splitWords)
+})
+```
+
+```{r}
+# Convert the corpus to a character vector
+corpus_content <- sapply(corpus, as.character)
+
+# Create a new data frame with the corpus content and the Profile column from the original data frame
+new_df <- data.frame(Corpus = corpus_content, Profile = df$Profile)
+
+# Print the new data frame
+print(new_df)
+
+# Print the dimensions (number of rows and columns) of the new data frame
+print(dim(new_df))
+```
+
+## Network Mentions-Mentions
+(view the photo that I've done with gephi too)
+```{r}
+library(openxlsx)
+corpus_content <- sapply(corpus, as.character)
+mentions_df <- data.frame(Corpus = corpus_content)
+
+# Estrazione degli hashtag e creazione delle coppie di hashtag
+edges <- mentions_df %>%
+  mutate(Corpus = strsplit(as.character(Corpus), "\\s+")) %>%  # Suddivisione per spazi
+  filter(lengths(Corpus) >= 2) %>%  # Filtra i post con almeno due hashtag
+  rowwise() %>%
+  mutate(pairs = list(combn(Corpus, 2, simplify = FALSE))) %>%
+  unnest(pairs) %>%
+  unnest_wider(pairs, names_sep = "_") %>%
+  rename(Source = pairs_1, Target = pairs_2) %>%
+  select(-Corpus)  # Rimuove la colonna originale degli hashtag
+
+# Visualizzazione del dataframe con source e target
+print(edges)
+
+# Scarico in Excel il dataframe
+excel_file <- "Mentions_x2.xlsx"
+write.xlsx(edges, excel_file)
+```
+
+
+## Network Mentions-Profile
+(view the photo that I've done with gephi too)
+```{r}
+# Split each row of the corpus based on spaces
+split_corpus <- strsplit(new_df$Corpus, "\\s+")
+
+# Create a new data frame for the split words
+new_df_split <- data.frame(
+  Corpus = unlist(split_corpus),
+  Profile = rep(new_df$Profile, sapply(split_corpus, length))
+)
+# Remove any empty rows
+new_df_split <- new_df_split[new_df_split$Corpus != "", ]
+
+# Remove all rows with missing values (NA)
+new_df_split <- na.omit(new_df_split)
+
+# Print the new data frame with split words
+print(new_df_split)
+
+# Rename columns for clarity
+colnames(new_df_split)[colnames(new_df_split) == "Corpus"] <- "Source"
+colnames(new_df_split)[colnames(new_df_split) == "Profile"] <- "Target"
+```
+
+## barplots for mentions frequency
+```{r}
+# Frequency of each mention
+word_freq <- table(new_df_split$Source)
+
+# Sorting of frequencies
+word_freq <- sort(word_freq, decreasing = TRUE)
+
+# Converti i dati in un dataframe
+word_freq_df <- as.data.frame(word_freq)
+word_freq_df$mention <- rownames(word_freq_df)
+colnames(word_freq_df) <- c("Frequenza", "Parola")
+
+# Seleziona solo le prime 20 frequenze
+top_20_freq_df <- word_freq_df[1:20, ]
+
+# Crea il grafico a barre utilizzando ggplot2
+grafico <- ggplot(data = top_20_freq_df, aes(x = Frequenza, y = Parola)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(title = "Top 20 most popular mentions",
+       x = "Frequenza",
+       y = "Parola") +
+  theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 1))  # Ruota le etichette sull'asse x di -45 gradi
+
+# Visualizza il grafico
+print(grafico)
+
+
+```
+
+```{r}
+word_freq <- new_df_split %>%
+  group_by(Source) %>%
+  summarise(freq = n())
+
+# Unire le frequenze al data frame originale
+new_df_split_x <- new_df_split %>%
+  left_join(word_freq, by = "Source")
+
+# Filtrare per mantenere solo le parole con frequenza >= 5
+new_df_split_x <- new_df_split_x %>%
+  filter(freq > 1) %>%
+  select(-freq) 
+print(new_df_split_x)
+
+new_df_split_x <- new_df_split_x %>%
+  mutate(Target = gsub("_(f|t)$", "", Target))
+new_df_split_x
+library(openxlsx)
+excel_file <- ("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Mentions.xlsx")
+write.xlsx(new_df_split_x, excel_file)
+```
+
+Splitting Dataset into 8
+```{r}
+new_df_split_2 <- new_df_split %>%
+  mutate(Profile_Base = gsub("_(f|t)$", "", Target))
+
+sotto_dataset <- new_df_split_2 %>%
+  group_split(Profile_Base)
+```
+
+```{r}
+for (i in 1:length(sotto_dataset)) {
+  dataset <- sotto_dataset[[i]]
+  freq <- table(dataset$Source)
+  freq_df <- as.data.frame(freq)
+  
+  # Filtra le modalità con frequenza minima di 10
+  freq_df <- freq_df[freq_df$Freq >= 10, ]
+  
+  freq_df <- freq_df[order(-freq_df$Freq), ]
+  colnames(freq_df) <- c("Corpus", "Frequency")
+  colori <- rep("blue", nrow(freq_df))  # Imposta il colore blu per tutti i bar
+  profile_name <- dataset$Profile_Base[1]
+  
+  grafico <- ggplot(data = freq_df, aes(x = reorder(Corpus, -Frequency), y = Frequency, fill = Corpus)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = colori) +
+    labs(title = paste("Bar Chart for", profile_name),
+         x = "Corpus",
+         y = "Frequency") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          legend.position = "none") 
+  
+  print(grafico)
+}
+
+```
+

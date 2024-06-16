@@ -1,0 +1,623 @@
+---
+title: "Tweets"
+author: "Mariateresa Russo"
+date: "2024-05-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+French parties analyzed in this study:
+1)France Insoumise: France Insoumise is a left-wing political movement founded in 2016 by Jean-Luc Mélenchon, a long-time French politician. The movement opposes neoliberalism, globalization, and defends more progressive policies such as higher taxes on the wealthy and the fight against austerity. It defines itself as anticapitalist and promotes greater participatory democracy. At the European level, France Insoumise is affiliated with the European United Left/Nordic Green Left group in the European Parliament.
+2)Les Républicains: Les Républicains, previously known as UMP (Union for a Popular Movement), are a center-right party in France. The party was founded in 2002 by a broad coalition of center-right and right-wing parties. Les Républicains support conservative policies including free market principles, reducing public spending, and a stricter immigration policy. At the European level, Les Républicains are affiliated with the European People's Party (EPP), a political group that includes many other European center-right parties.
+3)Les Verts: Les Verts, or Europe Écologie-Les Verts (EELV), is an ecologist political party in France. It was founded in 1984 and is the main ecologist party in the country. Les Verts focuses on environmental protection, sustainability, and combating climate change. The party supports policies such as renewable energy, reducing greenhouse gas emissions, and promoting public transportation. At the European level, Les Verts are part of the Greens/European Free Alliance group in the European Parliament.
+4)Parti Socialiste: The Socialist Party is a center-left party in France. Founded in 1969, the party has traditionally supported social democratic policies such as social welfare, redistribution of resources, and increased economic regulation. However, over the years, the Socialist Party has undergone various ideological transformations. At the European level, the 5)Socialist Party is affiliated with the Progressive Alliance of Socialists and Democrats group in the European Parliament.
+Place Publique: Place Publique is a progressive political movement founded in 2018 by Raphaël Glucksmann, a French intellectual and journalist. The movement focuses on defending democracy, human rights, the environment, and progressive social policies. It was a significant player in the 2019 European elections in France. At the European level, Place Publique is associated with the Progressive Alliance of Socialists and Democrats group in the European Parliament.
+6)Rassemblement National: Rassemblement National, previously known as the National Front, is a far-right political party in France. Founded in 1972 by Jean-Marie Le Pen, the party is known for its anti-immigration, eurosceptic, and nationalist positions. It opposes globalization and supports policies of national sovereignty. At the European level, Rassemblement National is associated with the Identity and Democracy group in the European Parliament.
+7)Reconquête: Reconquête is a right-wing French political movement founded by Éric Zemmour, a prominent journalist and writer. The movement opposes immigration and promotes traditional conservative policies. Reconquête has gained attention for its positions against multiculturalism and for the defense of French identity. It is not associated with a specific group in the European Parliament.
+8)Renaissance: Renaissance is a progressive political movement founded by French President Emmanuel Macron in view of the 2019 European elections. The movement supports liberal, pro-European, and reformist policies. It focuses on modernizing the French economy, promoting European solidarity, and combating climate change. At the European level, Renaissance is associated with the Renew Europe group in the European Parliament.
+
+
+European parties:
+(GUE/NGL) - European United Left/Nordic Green Left
+(EPP) - European People's Party
+Greens/EFA - Greens/European Free Alliance
+(S&D) - Progressive Alliance of Socialists and Democrats
+(ID) - Identity and Democracy
+(RE) - Renew Europe
+(ECR) - European Conservatives and Reformists
+```{r}
+party <- c("France Insoumise", "Les Républicains", "Les Verts", "Parti Socialiste", "Place Publique", "Rassemblement National", "Reconquête", "Renaissance")
+european_movement <- c("GUE_NGL", "EPP", "Verts_ALE", "S&D", "S&D", "ID", "ECR", "RE")
+orientation <- c("Left", "Centre-Right", "Centre", "Centre-Left", "Centre-Left","Right", "Right","Centre")
+leader <- c("Jean-Luc Mélenchon", "Éric Ciotti", "Marine Tondelier", "Olivier Faure", "Raphaël Glucksmann", "Marine Le Pen", "Éric Zemmour", "Emmanuel Macron")
+
+#da cambiare+vedere se place publique e parti socialiste si sono uniti
+candidate <-c("Manon Aubry", "François-Xavier Bellamy", "Marie Toussaint", "Raphaël Glucksmann ", "Raphaël Glucksmann","Jordan Barella", "Marion Maréchal ", "Valérie Hayer")
+
+parties <- data.frame(Party = party, European_movement = european_movement, Orientation = orientation, Leader = leader, European_candidate = candidate)
+print(parties)
+```
+
+```{r}
+library(readxl)
+library(tm)
+library(textstem)
+library(dplyr)
+library(ggplot2)
+library(rlang)
+library(tidymodels)
+
+library(koRpus)
+library(quanteda)
+library(udpipe)
+
+```
+
+The dataset
+```{r}
+library(readxl)
+df <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 1)
+```
+
+rename the labels
+```{r}
+table(df$Profile)
+
+df$Profile[df$Profile %in% 'FranceInsoumise'] <- 'France_Insoumise'
+df$Profile[df$Profile %in%  'Parti Socialiste'] <- 'Parti_Socialiste'
+df$Profile[df$Profile %in%  'les Républicains'] <- 'Les_Republicains'
+df$Profile[df$Profile %in%  'EELV'] <- 'Les_Verts'
+df$Profile[df$Profile %in%  'Place publique'] <- 'Place_Publique'
+df$Profile[df$Profile %in%  'RECONQUÊTE'] <- 'Reconquete'
+df$Profile[df$Profile %in%  'Rassemblement National'] <- 'Rassemblement_National'
+df$Profile[df$Profile %in%  'La France insoumise'] <- 'France_Insoumise'
+df$Profile[df$Profile %in%  'partisocialiste'] <- 'Parti_Socialiste'
+df$Profile[df$Profile %in%  'lesRepublicains'] <- 'Les_Republicains'
+df$Profile[df$Profile %in%  'Europe Écologie-Les Verts'] <- 'Les_Verts'
+df$Profile[df$Profile %in%  'placepublique_'] <- 'Place_Publique'
+df$Profile[df$Profile %in%  'Reconquete_off'] <- 'Reconquete'
+df$Profile[df$Profile %in%  'RNational_off'] <- 'Rassemblement_National'
+
+df$Profile <- ifelse(df$Network == "FACEBOOK", paste0(df$Profile, "_f"),
+                     ifelse(df$Network == "TWITTER", paste0(df$Profile, "_t"), df$Profile))
+
+ggplot(df, aes(x = Profile, fill = Network)) + 
+  geom_bar() +
+  scale_fill_manual(values = c("TWITTER" = "red", "FACEBOOK" = "blue")) +
+  labs(title = "Number of posts for each political party",
+       x = "Profile", 
+       y = "Frequency") + 
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+START Text Preprocessing
+```{r}
+# Create corpus from df$Message
+corpus <- Corpus(VectorSource(df$Message))
+corpus
+#inspect(corpus)
+```
+Functions
+```{r}
+remove_function <-content_transformer(function(x, pattern) gsub(pattern,' ',x))
+
+remove_emoji <- function(text) {
+  text <- gsub("[\U{1F600}-\U{1F64F}]", " ", text, perl=TRUE) # Remove Emoticons
+  text <- gsub("[\U{1F300}-\U{1F5FF}]", " ", text, perl=TRUE) # Remove symbols and Pictogram
+  text <- gsub("[\U{1F680}-\U{1F6FF}]", " ", text, perl=TRUE)# Remove maps   
+  text <- gsub("[\U{2600}-\U{26FF}]", " ", text, perl=TRUE) # Remove symbols
+  text <- gsub("[\U{2700}-\U{27BF}]", " ", text, perl=TRUE) # Remove Dingbats
+  text <- gsub("[\U{1F900}-\U{1F9FF}]", " ", text, perl=TRUE) # Remove emoji Supplemental Symbols and Pictographs
+  text <- gsub("⤵️"," ", text, perl=TRUE)
+  text <- gsub("▶️"," ", text, perl=TRUE)
+  text <- gsub("⬇️"," ", text, perl=TRUE)
+  text <- gsub("↩️"," ", text, perl=TRUE)
+  text <- gsub("⏰"," ", text, perl=TRUE) 
+  text <- gsub("⏱"," ", text, perl=TRUE) 
+  text <- gsub("€"," ", text, perl=TRUE) 
+  return(text)
+}
+
+remove_text_after_emoji <- function(text) {
+  text <-gsub("(➡️ )(.*)","\\1", text, perl=TRUE)
+  text <- gsub("(⤵️)(.*)","\\1", text, perl=TRUE)
+  text <- gsub("(▶️)(.*) ","\\1", text, perl=TRUE)
+  text <- gsub("(⬇️)(.*)","\\1", text, perl=TRUE)
+  text <- gsub("(↩️)(.*)","\\1", text, perl=TRUE) 
+  return(text)
+}
+
+remove_urls <- function(text) {
+  text <- gsub("(f|ht)tp(s?)://[^ ]+", " ", text) #remove url and links
+  text <- gsub("bit\\.ly/\\w+", " ", text)
+  return(text)
+}
+
+remove_hashtags <- function(text) {
+  text <- gsub("#\\w+", " ", text) #remove hashtags and words in the hashtags
+  return(text)
+}
+
+remove_outside_quotes <- function(text) {
+  text <- gsub("^[^\"]*\"|\"[^\"]*$", " ", text) #remove everything outside « »
+  return(text)
+}
+
+remove_words_after_at <- function(text) {
+  text <- gsub("\\s*@\\S+", " ", text) #remove words connected to @
+  return(text)
+}
+
+remove_spaces<- function(x) {
+    gsub("^[[:space:]]*"," ",x) # remove leading whitespaces
+    gsub("[[:space:]]*$"," ",x) # remove trailing whitespaces
+    gsub(' +', ' ', x) # remove extra whitespaces
+}
+
+remove_stopwords <- function(testo) {
+  # Lista di articoli, preposizioni e pronomi francesi
+  francesi <- c("le", "la", "les", "un", "une", "des", "du", "de", "au", "aux", "à", "avec", "chez", "pour", "par", "dans", "sur", "sous", "en", "vers", "depuis", "pendant", "entre", "jusqu'à", "avec", "sans", "comme", "par", "pour", "selon", "chez", "en", "vers", "entre", "envers", "malgré", "avec", "pour", "contre", "chez", "dans", "par", "pour", "avec", "sans", "sous", "sur", "vers", "avec", "dans", "en", "pour", "chez", "dans", "en", "entre", "par", "sous", "sur", "vers", "après", "avant", "contre", "depuis", "derrière", "devant", "pendant", "pour", "après", "avant", "avec", "contre", "dans", "de", "depuis", "en", "entre", "par", "pendant", "pour", "sans", "sous", "sur", "vers", "versus", "dans", "en", "pour", "par", "parmi", "selon", "sous", "sur", "de", "en", "pour", "de", "par", "pour", "sans", "vers", "dans", "en", "entre", "par", "sous", "sur", "vers", "contre", "par", "pour", "par", "sous", "vers", "contre", "entre", "versus", "dans", "en", "pour", "chez", "par", "sous", "sur", "vers", "dès", "plus", "rt", "non","ça","là","où")
+  for (f in francesi) {
+    text <- gsub(paste0("\\b", f, "\\b"), " ", testo, ignore.case = TRUE)
+  }
+  return(text)
+}
+
+remove_text_retweet <- function(text) {
+  text <-gsub("(rt )(.*)","\\1", text, perl=TRUE)
+  return(text)
+}
+
+```
+
+Simple syntathic preprocessing: 
+-trasformations in lower letters
+-remove special characters 
+-remove puntuaction
+-remove words with 1 letter
+-remove hashtags and urls
+-remove stopwords
+-remove spaces
+```{r}
+suppressWarnings({
+  #preprocessing
+  corpus <- tm_map(corpus, content_transformer(tolower))
+  
+  corpus <- tm_map(corpus, remove_function, "\r\n\r\n")
+  corpus <- tm_map(corpus, remove_function, "\r\n")
+  corpus <- tm_map(corpus, remove_function, "\n")
+  
+  corpus <- tm_map(corpus, content_transformer(remove_urls))
+  corpus <- tm_map(corpus, content_transformer(remove_hashtags))
+  corpus <- tm_map(corpus, content_transformer(remove_words_after_at))
+  
+  corpus <- tm_map(corpus, content_transformer(remove_text_after_emoji))
+  corpus <- tm_map(corpus, content_transformer(remove_emoji))
+  
+  corpus <- tm_map(corpus, removeWords, stopwords('french'))
+  corpus <- tm_map(corpus, content_transformer(remove_stopwords))
+  corpus <- tm_map(corpus,removeNumbers)
+  
+  corpus <- tm_map(corpus,remove_function, "\\b\\w{1}\\b") #remove words with 1 letter
+  corpus <- tm_map(corpus, removePunctuation)
+  corpus <- tm_map(corpus, remove_function, "’")
+  corpus <- tm_map(corpus, remove_function, "“")
+  corpus <- tm_map(corpus, remove_function, "”")
+  corpus <- tm_map(corpus, remove_function, "…")
+  corpus <- tm_map(corpus, remove_function, "–")
+  corpus <- tm_map(corpus, remove_function, "·")
+  
+  corpus <- tm_map(corpus, content_transformer(remove_outside_quotes))
+  corpus <- tm_map(corpus, remove_function, "«")
+  corpus <- tm_map(corpus, remove_function, "»")
+  
+  corpus <- tm_map(corpus, content_transformer(remove_text_retweet))
+  corpus <- tm_map(corpus, remove_function, "rt")
+
+  corpus <- tm_map(corpus, trimws) #remove whitespaces at the beginning and at the end of the paragraph
+  corpus <- tm_map(corpus,stripWhitespace)
+})
+
+```
+
+Bigrams creation
+```{r}
+suppressWarnings({
+replace_function <- content_transformer(function(x, pattern, replacement) {
+  gsub(pattern, replacement, x)
+})
+
+corpus <- tm_map(corpus, replace_function, pattern = "manon aubry", replacement = "manon_aubry")
+corpus <- tm_map(corpus, replace_function, pattern = "marie toussaint", replacement = "marie_toussaint")
+corpus <- tm_map(corpus, replace_function, pattern = "jordan bardella", replacement = "jordan_bardella")
+corpus <- tm_map(corpus, replace_function, pattern = "sarah knafo", replacement = "sarah_knafo")
+corpus <- tm_map(corpus, replace_function, pattern = "raphaël glucksmann", replacement = "raphaël_glucksmann")
+corpus <- tm_map(corpus, replace_function, pattern = "olivier faure", replacement = "olivier_faure")
+corpus <- tm_map(corpus, replace_function, pattern = "eric ciotti", replacement = "eric_ciotti")
+corpus <- tm_map(corpus, replace_function, pattern = "union populaire", replacement = "union_populaire")
+
+corpus <- tm_map(corpus, replace_function, pattern = "françoisxavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois-xavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "éric zemmour", replacement = "zemmour")
+corpus <- tm_map(corpus, replace_function, pattern = "marion maréchal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "marion marechal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "emmanuel macron", replacement = "macron")
+
+corpus <- tm_map(corpus, replace_function, pattern = "von der leyen", replacement = "von_der_leyen")
+corpus <- tm_map(corpus, replace_function, pattern = "françois mitterrand", replacement = "françois_mitterrand")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien lachaud panot", replacement = "panot")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacement = "panot")
+})
+```
+
+```{r}
+#inspect(corpus)
+```
+
+
+-Stemming
+-Term Document Matrix
+-Bag of words with term frequency
+```{r}
+suppressWarnings({
+#tdm without stemming
+tdm_1 <- DocumentTermMatrix(corpus)
+print('Term-document matrix before stemming: ')
+print(tdm_1) 
+
+#tf
+corpus <- tm_map(corpus, stemDocument, language = 'french')
+tdm <- DocumentTermMatrix(corpus)
+print('Term-document matrix after stemming: ')
+print(tdm)
+})
+
+"
+#tf-idf
+suppressWarnings({
+  tdm_1 <- DocumentTermMatrix(corpus, control = list(weighting = function(x) weightTfIdf(x, normalize = FALSE)))
+  print(tdm_1)
+  
+  corpus <- tm_map(corpus, stemDocument, language = 'french')
+})
+"
+```
+```{r}
+# inspect the tdm
+tdm_df <- as.data.frame(as.matrix(tdm))
+tdm_df
+```
+
+global words frequency and removing rare words
+```{r}
+#column frequencies
+column_frequencies <- colSums(tdm_df)
+frequency_df <- data.frame(t(column_frequencies))
+print(frequency_df)
+
+#common words and rare words
+frequency_df_transposed <- t(frequency_df)
+frequency_tbl <- as_tibble(frequency_df_transposed)
+
+quantile(frequency_tbl$V1, probs = 0.5) 
+quantile(frequency_tbl$V1, probs = 0.6) 
+quantile(frequency_tbl$V1, probs = 0.7)
+quantile(frequency_tbl$V1, probs = 0.8)
+quantile(frequency_tbl$V1, probs = 0.9)
+quantile(frequency_tbl$V1, probs = 0.95)
+quantile(frequency_tbl$V1, probs = 0.96)
+quantile(frequency_tbl$V1, probs = 0.97)
+quantile(frequency_tbl$V1, probs = 0.98)
+quantile(frequency_tbl$V1, probs = 0.99)
+quantile(frequency_tbl$V1, probs = 1)
+
+word_freq_under6 <- names(column_frequencies)[column_frequencies < 6]
+rare_words_list <- as.list(word_freq_under6 )
+
+tdm_df <- tdm_df[, !colnames(tdm_df) %in% rare_words_list]
+
+column_frequencies <- colSums(tdm_df)
+frequency_df <- data.frame(t(column_frequencies))
+frequenze <- as.numeric(frequency_df[1, ])
+ordered_indices <- order(frequenze, decreasing = TRUE)
+ordered_frequency_df <- frequency_df[, ordered_indices]
+print(frequency_df)
+print(ordered_frequency_df)
+print(tdm_df)
+
+```
+
+```{r}
+#remove columns
+tdm_df <- subset(tdm_df, select = -c(celui,des,mati,sol,ceux,voi,sub,tres,not,tout,beaucoup,autr,comm,poch,une,environ,oui,là,ça,entre,encor,jusqu,icip,apres,toujour,non,moin,dont,depuis,plusieur,mieux,déjà,qua,quoi,pou))
+
+tdm_df<-tdm_df[ , -172]
+tdm_df<-tdm_df[ , -605]
+tdm_df<-tdm_df[ , -787]
+tdm_df<-tdm_df[ , -874]
+
+
+tdm_df
+```
+
+Most popular words
+```{r}
+term_freq <- colSums(as.matrix(tdm_df))
+names(term_freq) <- colnames(tdm_df)
+term_freq<- subset(term_freq, term_freq>=20)
+df_plot<- data.frame(term = names(term_freq), freq = term_freq)
+
+# Plot word frequency
+df_plot<- df_plot %>%
+  top_n(30)
+
+ggplot(df_plot, aes(x = reorder(term, +freq), y = freq, fill = freq)) + geom_bar(stat = "identity")+ scale_colour_gradientn(colors = terrain.colors(10))+ xlab("Terms")+ ylab("Count")+coord_flip()
+
+```
+
+
+Words cloud
+```{r}
+suppressWarnings({
+library(wordcloud)
+library(wordcloud2)
+library(RColorBrewer)
+
+matrix <- as.matrix(tdm_df) 
+matrix <- t(matrix)
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+dfw <- data.frame(word = names(words),freq=words)
+
+set.seed(1234) 
+wordcloud(words = dfw$word, freq = dfw$freq, min.freq = 1,           
+          max.words=1000, random.order=FALSE, rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+
+wordcloud2(data=dfw, size=1.6, color='random-dark', shape='pentagon')
+})
+
+```
+
+words for each party   
+CREATION OF THE CSV (GO TO FILE words per party.rmd)
+```{r}
+suppressWarnings({
+corpus_content <- sapply(corpus, as.character)
+
+new_df <- data.frame(Corpus = corpus_content, Profile = df$Profile, Network = df$Network, Num_Likes = df$`Number of Likes`, Num_Comments = df$`Number of comments`, Num_Reactions = df$`Number of Reactions, Comments & Shares`, Interaction_Rate = df$`Post interaction rate`)
+
+
+print(new_df)
+print(dim(new_df))
+
+library(openxlsx)
+excel_file <- "Words.xlsx"
+write.xlsx(new_df, excel_file)
+})
+
+```
+
+Sentiment analysis with syuzhet
+https://www.saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm
+Sentiment analysis, also known as opinion mining, is an umbrella term for a number of processes for automatically calculating the degree of negativity or positivity in a text. 
+The dictionary for syuzhet is available for 108 languages and is able to classify positive and negative documents. It is able to classify the text in other 8 sentiment too.
+
+Posts general sentiment
+```{r}
+library(syuzhet)
+library(lubridate)
+library(ggplot2)
+library(scales)
+library(reshape2)
+library(dplyr)
+
+tweets <- new_df$Corpus
+
+# Ottieni i sentimenti utilizzando get_nrc_sentiment
+s <- get_nrc_sentiment(tweets)
+
+# Order bars
+#s <- s[, rev(order(colSums(s)))]
+
+# Get sentiments using get_nrc_sentiment
+s <- get_nrc_sentiment(tweets)
+
+# Barplot for positive and negative sentiments
+positive_negative <- s[, c("positive", "negative")]
+barplot(colSums(positive_negative),
+        las = 2,
+        col = 'blue',
+        ylab = 'Count',
+        main = 'Positive and Negative Sentiment Scores')
+
+# Specify order for emotions
+emotions_order <- c("joy", "trust", "surprise", "fear", "sadness", "disgust", "anger", "anticipation")
+
+# Reorder columns according to specified order
+other_sentiments <- s[, emotions_order]
+
+# Create a barplot with angled emotions as labels
+barplot(colSums(other_sentiments),
+        las = 2,                      # Rotate labels by 90 degrees
+        col = 'red',                 # Set bar color to red
+        ylab = 'Count',              # Label for y-axis
+        main = 'Other Sentiment Scores', # Title of the plot
+        cex.names = 0.8,             # Reduce the size of labels
+        names.arg = emotions_order,  # Specify names for the x-axis
+        cex.axis = 0.8)
+
+
+```
+
+```{r}
+df_sent <- new_df %>%
+  mutate(Profile = substr(Profile, 1, nchar(Profile) - 2)) %>%  #Remove last 2 letters
+  mutate(orientation = "centre/centre left") %>%
+  mutate(orientation = ifelse(Profile %in% c("France_Insoumise"), "left", orientation),
+         orientation = ifelse(Profile %in% c("Reconquete", "Rassemblement_National", "Les_Republicains"), "right", orientation))
+
+#add column 'Profile' in s
+merged_df <- cbind(Profile = df_sent$Profile, orientation = df_sent$orientation, s)
+```
+
+```{r}
+# sentiments for each orientation
+sentiment_by_orientation <- merged_df %>%
+  select(-Profile) %>%
+  group_by(orientation) %>%
+  summarise_all(sum) %>%
+  tidyr::gather(key = "Sentiment", value = "Count", -orientation)
+
+# Divide sentiments and emotions
+positive_negative_orientation <- sentiment_by_orientation %>%
+  filter(Sentiment %in% c("positive", "negative"))
+
+other_sentiments_orientation <- sentiment_by_orientation %>%
+  filter(!Sentiment %in% c("positive", "negative"))
+
+# barplot positive and negative sentiments
+ggplot(positive_negative_orientation, aes(x = Sentiment, y = Count)) +
+  geom_bar(stat = "identity", fill = 'blue') +
+  facet_wrap(~orientation, scales = "free") +
+  labs(title = "Positive and Negative Sentiment Scores by Orientation",
+       x = "Sentiment",
+       y = "Count",
+       fill = "Sentiment") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+# estabilish the order
+emotions_order <- c("joy", "trust", "surprise", "fear", "sadness", "disgust", "anger", "anticipation")
+other_sentiments_orientation$Sentiment <- factor(other_sentiments_orientation$Sentiment, levels = emotions_order)
+
+# Disegna il barplot per gli altri sentimenti
+ggplot(other_sentiments_orientation, aes(x = Sentiment, y = Count)) +
+  geom_bar(stat = "identity", fill = 'blue') +
+  facet_wrap(~orientation, scales = "free") +
+  labs(title = "Other Sentiment Scores by Orientation",
+       x = "Sentiment",
+       y = "Count",
+       fill = "Sentiment") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+```
+same barplots but in different windows
+```{r}
+# Filtra i dati per orientamento "left"
+left_sentiments <- other_sentiments_orientation %>%
+  filter(orientation == "left")
+
+# Disegna il barplot per i sentimenti orientamento "left"
+ggplot(left_sentiments, aes(x = Sentiment, y = Count)) +
+  geom_bar(stat = "identity", fill = 'blue') +
+  labs(title = "Other Sentiment Scores for Left Orientation",
+       x = "Sentiment",
+       y = "Count",
+       fill = "Sentiment") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+# Filtra i dati per orientamento "center"
+center_sentiments <- other_sentiments_orientation %>%
+  filter(orientation == "centre/centre left")
+
+# Disegna il barplot per i sentimenti orientamento "center"
+ggplot(center_sentiments, aes(x = Sentiment, y = Count)) +
+  geom_bar(stat = "identity", fill = 'blue') +
+  labs(title = "Other Sentiment Scores for Center/Center Left Orientation",
+       x = "Sentiment",
+       y = "Count",
+       fill = "Sentiment") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+# Filtra i dati per orientamento "right"
+right_sentiments <- other_sentiments_orientation %>%
+  filter(orientation == "right")
+
+# Disegna il barplot per i sentimenti orientamento "right"
+ggplot(right_sentiments, aes(x = Sentiment, y = Count)) +
+  geom_bar(stat = "identity", fill = 'blue') +
+  labs(title = "Other Sentiment Scores for Right Orientation",
+       x = "Sentiment",
+       y = "Count",
+       fill = "Sentiment") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+```
+
+
+
+
+---------------------------------------------------------------------------------------------
+
+CA-GALT
+tdm:   
+Y: a data frame with n rows (individuals) and p columns (frequencies) parole sulle colonne
+X: a data frame with n rows (individuals) and k columns (variables) partiti sulle colonne 
+
+DA RIMUOVERE
+```{r}
+post <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 1)
+
+post$Profile[post$Profile %in% 'FranceInsoumise'] <- 'France_Insoumise'
+post$Profile[post$Profile %in%  'Parti Socialiste'] <- 'Parti_Socialiste'
+post$Profile[post$Profile %in%  'les Républicains'] <- 'Les_Republicains'
+post$Profile[post$Profile %in%  'EELV'] <- 'Les_Verts'
+post$Profile[post$Profile %in%  'Place publique'] <- 'Place_Publique'
+post$Profile[post$Profile %in%  'RECONQUÊTE'] <- 'Reconquete'
+post$Profile[post$Profile %in%  'Rassemblement National'] <- 'Rassemblement_National'
+post$Profile[post$Profile %in%  'La France insoumise'] <- 'France_Insoumise'
+post$Profile[post$Profile %in%  'partisocialiste'] <- 'Parti_Socialiste'
+post$Profile[post$Profile %in%  'lesRepublicains'] <- 'Les_Republicains'
+post$Profile[post$Profile %in%  'Europe Écologie-Les Verts'] <- 'Les_Verts'
+post$Profile[post$Profile %in%  'placepublique_'] <- 'Place_Publique'
+post$Profile[post$Profile %in%  'Reconquete_off'] <- 'Reconquete'
+post$Profile[post$Profile %in%  'RNational_off'] <- 'Rassemblement_National'
+
+post$Profile <- ifelse(post$Network == "FACEBOOK", paste0(post$Profile, "_f"),
+                     ifelse(post$Network == "TWITTER", paste0(post$Profile, "_t"), post$Profile))
+
+
+library(FactoMineR)
+library(quanteda)
+library(dplyr)
+
+#pulizia da fare meglio
+post$Message = gsub("’", ",", post$Message)
+post$Message = gsub("'", ",", post$Message)
+post$Message = gsub("[^\x01-\x7F]", "", post$Message)
+post.token = quanteda::tokens(post$Message, what = "word", remove_punct = T, remove_url = T, remove_number = T, remove_symbols = T, remove_separators = T )
+post.token = quanteda::tokens_tolower(post.token)
+post.token = tokens_select(post.token, stopwords("french"), selection = "remove")
+post.token %>% head()
+
+#hashtags 
+hashtag_uno = convert(dfm(post.token), to = "data.frame") 
+hashtag_uno$Partito = post$Profile
+hashtag_uno = hashtag_uno %>%
+  group_by(Partito) %>%
+  dplyr::select(matches("^#")) %>%
+  filter(rowSums(across(where(is.numeric)))!=0) %>%
+  summarise(across(everything(), sum))
+
+hashtag_uno %>% head()
+
+prima = hashtag_uno %>% as.data.frame() %>% dplyr::select(-Partito)
+
+seconda = hashtag_uno %>% mutate(orientamento = "centro") %>% mutate(orientamento = ifelse(Partito %in% c("pd", "avs"),"sinistra", orientamento))
+seconda = seconda %>% mutate(orientamento = ifelse(Partito %in% c("lega", "fi", "fdi"), "destra", orientamento))
+
+seconda = seconda %>% dplyr::select(Partito, orientamento) %>% mutate(Partito = as.factor(Partito), orientamento = as.factor(orientamento))
+
+cagal = CaGalt(prima, seconda, type = "n")
+plot.CaGalt(cagal)
+```
