@@ -1,0 +1,454 @@
+---
+title: "France elections singular party"
+author: "Mariateresa Russo"
+date: "2024-05-15"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(wordcloud)
+library(wordcloud2)
+library(RColorBrewer)
+```
+
+```{r}
+df2 <- Words
+```
+
+```{r}
+franceinsoumise_df = subset(df2, Profile %in% c("France_Insoumise_t", "France_Insoumise_f"))
+republicains_df = subset(df2, Profile %in% c("Les_Republicains_t", "Les_Republicains_f"))
+verts_df = subset(df2, Profile %in% c("Les_Verts_t", "Les_Verts_f"))
+partisocialiste_df = subset(df2, Profile %in% c("Parti_Socialiste_t", "Parti_Socialiste_f"))
+placepublique_df = subset(df2, Profile %in% c("Place_Publique_t", "Place_Publique_f"))
+rassemblementnational_df = subset(df2, Profile %in% c("Rassemblement_National_t", "Rassemblement_National_f"))
+reconquete_df = subset(df2, Profile %in% c("Reconquete_t", "Reconquete_f"))
+renaissance_df = subset(df2, Profile %in% c("Renaissance_t", "Renaissance_f"))
+
+```
+
+
+```{r}
+corpus <- Corpus(VectorSource(franceinsoumise_df$Corpus))
+suppressWarnings({
+replace_function <- content_transformer(function(x, pattern, replacement) {
+  gsub(pattern, replacement, x)
+})
+
+corpus <- tm_map(corpus, replace_function, pattern = "manon aubry", replacement = "manon_aubry")
+corpus <- tm_map(corpus, replace_function, pattern = "marie toussaint", replacement = "marie_toussaint")
+corpus <- tm_map(corpus, replace_function, pattern = "jordan bardella", replacement = "jordan_bardella")
+corpus <- tm_map(corpus, replace_function, pattern = "sarah knafo", replacement = "sarah_knafo")
+corpus <- tm_map(corpus, replace_function, pattern = "raphaël glucksmann", replacement = "raphaël_glucksmann")
+corpus <- tm_map(corpus, replace_function, pattern = "olivier faure", replacement = "olivier_faure")
+corpus <- tm_map(corpus, replace_function, pattern = "eric ciotti", replacement = "eric_ciotti")
+corpus <- tm_map(corpus, replace_function, pattern = "union populaire", replacement = "union_populaire")
+
+corpus <- tm_map(corpus, replace_function, pattern = "françoisxavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois-xavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "éric zemmour", replacement = "zemmour")
+corpus <- tm_map(corpus, replace_function, pattern = "marion maréchal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "marion marechal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "emmanuel macron", replacement = "macron")
+
+corpus <- tm_map(corpus, replace_function, pattern = "von der leyen", replacement = "von_der_leyen")
+corpus <- tm_map(corpus, replace_function, pattern = "françois mitterrand", replacement = "françois_mitterrand")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien lachaud panot", replacement = "panot")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacement = "panot")
+})
+
+corpus <- tm_map(corpus, stemDocument, language = 'french')
+tdm <- DocumentTermMatrix(corpus)
+
+tdm_df<- as.data.frame(as.matrix(tdm))
+
+tdm_df <- subset(tdm_df, select = -c(celui,sol,ceux,voi,sub,not,tout,beaucoup,autr,comm,poch,une,environ,oui,là,ça,entre,encor,jusqu,icip,toujour,non,moin,dont,depuis,plusieur,mieux,déjà,qua,quoi))
+tdm_df<-tdm_df[ , -190]
+tdm_df
+
+matrix <- as.matrix(tdm_df) 
+matrix <- t(matrix)
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+dfw <- data.frame(word = names(words),freq=words)
+
+suppressWarnings({
+set.seed(1234)
+wordcloud(words = dfw$word, freq = dfw$freq, min.freq = 1,           
+          max.words=500, random.order=FALSE, rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+})
+
+```
+```{r}
+corpus <- Corpus(VectorSource(partisocialiste_df$Corpus))
+suppressWarnings({
+replace_function <- content_transformer(function(x, pattern, replacement) {
+  gsub(pattern, replacement, x)
+})
+
+corpus <- tm_map(corpus, replace_function, pattern = "manon aubry", replacement = "manon_aubry")
+corpus <- tm_map(corpus, replace_function, pattern = "marie toussaint", replacement = "marie_toussaint")
+corpus <- tm_map(corpus, replace_function, pattern = "jordan bardella", replacement = "jordan_bardella")
+corpus <- tm_map(corpus, replace_function, pattern = "sarah knafo", replacement = "sarah_knafo")
+corpus <- tm_map(corpus, replace_function, pattern = "raphaël glucksmann", replacement = "raphaël_glucksmann")
+corpus <- tm_map(corpus, replace_function, pattern = "olivier faure", replacement = "olivier_faure")
+corpus <- tm_map(corpus, replace_function, pattern = "eric ciotti", replacement = "eric_ciotti")
+corpus <- tm_map(corpus, replace_function, pattern = "union populaire", replacement = "union_populaire")
+
+corpus <- tm_map(corpus, replace_function, pattern = "françoisxavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois-xavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "éric zemmour", replacement = "zemmour")
+corpus <- tm_map(corpus, replace_function, pattern = "marion maréchal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "marion marechal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "emmanuel macron", replacement = "macron")
+
+corpus <- tm_map(corpus, replace_function, pattern = "von der leyen", replacement = "von_der_leyen")
+corpus <- tm_map(corpus, replace_function, pattern = "françois mitterrand", replacement = "françois_mitterrand")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien lachaud panot", replacement = "panot")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacement = "panot")
+})
+
+corpus <- tm_map(corpus, stemDocument, language = 'french')
+tdm <- DocumentTermMatrix(corpus)
+
+tdm_df<- as.data.frame(as.matrix(tdm))
+
+tdm_df <- subset(tdm_df, select =-c(non,moin,dont,depuis,mieux,ceux,comm,une,environ,entre,là))
+tdm_df<-tdm_df[ , -69]
+tdm_df<-tdm_df[ , -316]
+tdm_df<-tdm_df[ , -419]
+tdm_df<-tdm_df[ , -474]
+tdm_df<-tdm_df[ , -988]
+tdm_df
+
+matrix <- as.matrix(tdm_df) 
+matrix <- t(matrix)
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+dfw <- data.frame(word = names(words),freq=words)
+
+suppressWarnings({
+set.seed(1234)
+wordcloud(words = dfw$word, freq = dfw$freq, min.freq = 1,           
+          max.words=500, random.order=FALSE, rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+})
+```
+
+```{r}
+corpus <- Corpus(VectorSource(placepublique_df$Corpus))
+suppressWarnings({
+replace_function <- content_transformer(function(x, pattern, replacement) {
+  gsub(pattern, replacement, x)
+})
+
+corpus <- tm_map(corpus, replace_function, pattern = "manon aubry", replacement = "manon_aubry")
+corpus <- tm_map(corpus, replace_function, pattern = "marie toussaint", replacement = "marie_toussaint")
+corpus <- tm_map(corpus, replace_function, pattern = "jordan bardella", replacement = "jordan_bardella")
+corpus <- tm_map(corpus, replace_function, pattern = "sarah knafo", replacement = "sarah_knafo")
+corpus <- tm_map(corpus, replace_function, pattern = "raphaël glucksmann", replacement = "raphaël_glucksmann")
+corpus <- tm_map(corpus, replace_function, pattern = "olivier faure", replacement = "olivier_faure")
+corpus <- tm_map(corpus, replace_function, pattern = "eric ciotti", replacement = "eric_ciotti")
+corpus <- tm_map(corpus, replace_function, pattern = "union populaire", replacement = "union_populaire")
+
+corpus <- tm_map(corpus, replace_function, pattern = "françoisxavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois-xavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "éric zemmour", replacement = "zemmour")
+corpus <- tm_map(corpus, replace_function, pattern = "marion maréchal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "marion marechal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "emmanuel macron", replacement = "macron")
+
+corpus <- tm_map(corpus, replace_function, pattern = "von der leyen", replacement = "von_der_leyen")
+corpus <- tm_map(corpus, replace_function, pattern = "françois mitterrand", replacement = "françois_mitterrand")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien lachaud panot", replacement = "panot")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacement = "panot")
+})
+
+corpus <- tm_map(corpus, stemDocument, language = 'french')
+tdm <- DocumentTermMatrix(corpus)
+
+tdm_df<- as.data.frame(as.matrix(tdm))
+
+tdm_df<-tdm_df[ , -277]
+tdm_df<-tdm_df[ , -309]
+tdm_df<-tdm_df[ , -405]
+tdm_df
+
+matrix <- as.matrix(tdm) 
+matrix <- t(matrix)
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+dfw <- data.frame(word = names(words),freq=words)
+
+suppressWarnings({
+set.seed(1234)
+wordcloud(words = dfw$word, freq = dfw$freq, min.freq = 1,           
+          max.words=500, random.order=FALSE, rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+})
+```
+
+```{r}
+corpus <- Corpus(VectorSource(republicains_df$Corpus))
+suppressWarnings({
+replace_function <- content_transformer(function(x, pattern, replacement) {
+  gsub(pattern, replacement, x)
+})
+
+corpus <- tm_map(corpus, replace_function, pattern = "manon aubry", replacement = "manon_aubry")
+corpus <- tm_map(corpus, replace_function, pattern = "marie toussaint", replacement = "marie_toussaint")
+corpus <- tm_map(corpus, replace_function, pattern = "jordan bardella", replacement = "jordan_bardella")
+corpus <- tm_map(corpus, replace_function, pattern = "sarah knafo", replacement = "sarah_knafo")
+corpus <- tm_map(corpus, replace_function, pattern = "raphaël glucksmann", replacement = "raphaël_glucksmann")
+corpus <- tm_map(corpus, replace_function, pattern = "olivier faure", replacement = "olivier_faure")
+corpus <- tm_map(corpus, replace_function, pattern = "eric ciotti", replacement = "eric_ciotti")
+corpus <- tm_map(corpus, replace_function, pattern = "union populaire", replacement = "union_populaire")
+
+corpus <- tm_map(corpus, replace_function, pattern = "françoisxavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois-xavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "éric zemmour", replacement = "zemmour")
+corpus <- tm_map(corpus, replace_function, pattern = "marion maréchal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "marion marechal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "emmanuel macron", replacement = "macron")
+
+corpus <- tm_map(corpus, replace_function, pattern = "von der leyen", replacement = "von_der_leyen")
+corpus <- tm_map(corpus, replace_function, pattern = "françois mitterrand", replacement = "françois_mitterrand")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien lachaud panot", replacement = "panot")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacement = "panot")
+})
+
+corpus <- tm_map(corpus, stemDocument, language = 'french')
+tdm <- DocumentTermMatrix(corpus)
+
+tdm_df<- as.data.frame(as.matrix(tdm))
+
+tdm_df <- subset(tdm_df, select = -c(celui,sol,ceux,sub,tout,beaucoup,autr,comm,entre,qua))
+tdm_df<-tdm_df[ , -87]
+tdm_df
+
+matrix <- as.matrix(tdm_df) 
+matrix <- t(matrix)
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+dfw <- data.frame(word = names(words),freq=words)
+
+suppressWarnings({
+set.seed(1234)
+wordcloud(words = dfw$word, freq = dfw$freq, min.freq = 1,           
+          max.words=500, random.order=FALSE, rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+})
+```
+
+
+```{r}
+corpus <- Corpus(VectorSource(rassemblementnational_df$Corpus))
+suppressWarnings({
+replace_function <- content_transformer(function(x, pattern, replacement) {
+  gsub(pattern, replacement, x)
+})
+
+corpus <- tm_map(corpus, replace_function, pattern = "manon aubry", replacement = "manon_aubry")
+corpus <- tm_map(corpus, replace_function, pattern = "marie toussaint", replacement = "marie_toussaint")
+corpus <- tm_map(corpus, replace_function, pattern = "jordan bardella", replacement = "jordan_bardella")
+corpus <- tm_map(corpus, replace_function, pattern = "sarah knafo", replacement = "sarah_knafo")
+corpus <- tm_map(corpus, replace_function, pattern = "raphaël glucksmann", replacement = "raphaël_glucksmann")
+corpus <- tm_map(corpus, replace_function, pattern = "olivier faure", replacement = "olivier_faure")
+corpus <- tm_map(corpus, replace_function, pattern = "eric ciotti", replacement = "eric_ciotti")
+corpus <- tm_map(corpus, replace_function, pattern = "union populaire", replacement = "union_populaire")
+
+corpus <- tm_map(corpus, replace_function, pattern = "françoisxavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois-xavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "éric zemmour", replacement = "zemmour")
+corpus <- tm_map(corpus, replace_function, pattern = "marion maréchal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "marion marechal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "emmanuel macron", replacement = "macron")
+
+corpus <- tm_map(corpus, replace_function, pattern = "von der leyen", replacement = "von_der_leyen")
+corpus <- tm_map(corpus, replace_function, pattern = "françois mitterrand", replacement = "françois_mitterrand")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien lachaud panot", replacement = "panot")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacement = "panot")
+})
+
+corpus <- tm_map(corpus, stemDocument, language = 'french')
+tdm <- DocumentTermMatrix(corpus)
+
+tdm_df<- as.data.frame(as.matrix(tdm))
+
+tdm_df <- subset(tdm_df, select = -c(celui,sol,ceux,voi,sub,not,tout,autr,comm,environ,oui,là,ça,entre,jusqu,icip,toujour,non,moin,dont,depuis,plusieur,déjà,quoi,pou))
+#tdm_df<-tdm_df[ , -367]
+tdm_df
+
+matrix <- as.matrix(tdm) 
+matrix <- t(matrix)
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+dfw <- data.frame(word = names(words),freq=words)
+
+suppressWarnings({
+set.seed(1234)
+wordcloud(words = dfw$word, freq = dfw$freq, min.freq = 1,           
+          max.words=500, random.order=FALSE, rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+})
+```
+
+```{r}
+corpus <- Corpus(VectorSource(reconquete_df$Corpus))
+suppressWarnings({
+replace_function <- content_transformer(function(x, pattern, replacement) {
+  gsub(pattern, replacement, x)
+})
+
+corpus <- tm_map(corpus, replace_function, pattern = "manon aubry", replacement = "manon_aubry")
+corpus <- tm_map(corpus, replace_function, pattern = "marie toussaint", replacement = "marie_toussaint")
+corpus <- tm_map(corpus, replace_function, pattern = "jordan bardella", replacement = "jordan_bardella")
+corpus <- tm_map(corpus, replace_function, pattern = "sarah knafo", replacement = "sarah_knafo")
+corpus <- tm_map(corpus, replace_function, pattern = "raphaël glucksmann", replacement = "raphaël_glucksmann")
+corpus <- tm_map(corpus, replace_function, pattern = "olivier faure", replacement = "olivier_faure")
+corpus <- tm_map(corpus, replace_function, pattern = "eric ciotti", replacement = "eric_ciotti")
+corpus <- tm_map(corpus, replace_function, pattern = "union populaire", replacement = "union_populaire")
+
+corpus <- tm_map(corpus, replace_function, pattern = "françoisxavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois-xavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "éric zemmour", replacement = "zemmour")
+corpus <- tm_map(corpus, replace_function, pattern = "marion maréchal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "marion marechal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "emmanuel macron", replacement = "macron")
+
+corpus <- tm_map(corpus, replace_function, pattern = "von der leyen", replacement = "von_der_leyen")
+corpus <- tm_map(corpus, replace_function, pattern = "françois mitterrand", replacement = "françois_mitterrand")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien lachaud panot", replacement = "panot")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacement = "panot")
+})
+
+corpus <- tm_map(corpus, stemDocument, language = 'french')
+tdm <- DocumentTermMatrix(corpus)
+
+tdm_df<- as.data.frame(as.matrix(tdm))
+
+tdm_df <- subset(tdm_df, select = -c(ceux,sub,not,tout,beaucoup,autr,comm,encor,jusqu,toujour,déjà))
+tdm_df
+
+matrix <- as.matrix(tdm) 
+matrix <- t(matrix)
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+dfw <- data.frame(word = names(words),freq=words)
+
+suppressWarnings({
+set.seed(1234)
+wordcloud(words = dfw$word, freq = dfw$freq, min.freq = 1,           
+          max.words=500, random.order=FALSE, rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+})
+```
+
+```{r}
+corpus <- Corpus(VectorSource(verts_df$Corpus))
+suppressWarnings({
+replace_function <- content_transformer(function(x, pattern, replacement) {
+  gsub(pattern, replacement, x)
+})
+
+corpus <- tm_map(corpus, replace_function, pattern = "manon aubry", replacement = "manon_aubry")
+corpus <- tm_map(corpus, replace_function, pattern = "marie toussaint", replacement = "marie_toussaint")
+corpus <- tm_map(corpus, replace_function, pattern = "jordan bardella", replacement = "jordan_bardella")
+corpus <- tm_map(corpus, replace_function, pattern = "sarah knafo", replacement = "sarah_knafo")
+corpus <- tm_map(corpus, replace_function, pattern = "raphaël glucksmann", replacement = "raphaël_glucksmann")
+corpus <- tm_map(corpus, replace_function, pattern = "olivier faure", replacement = "olivier_faure")
+corpus <- tm_map(corpus, replace_function, pattern = "eric ciotti", replacement = "eric_ciotti")
+corpus <- tm_map(corpus, replace_function, pattern = "union populaire", replacement = "union_populaire")
+
+corpus <- tm_map(corpus, replace_function, pattern = "françoisxavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois-xavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "éric zemmour", replacement = "zemmour")
+corpus <- tm_map(corpus, replace_function, pattern = "marion maréchal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "marion marechal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "emmanuel macron", replacement = "macron")
+
+corpus <- tm_map(corpus, replace_function, pattern = "von der leyen", replacement = "von_der_leyen")
+corpus <- tm_map(corpus, replace_function, pattern = "françois mitterrand", replacement = "françois_mitterrand")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien lachaud panot", replacement = "panot")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacement = "panot")
+})
+
+corpus <- tm_map(corpus, stemDocument, language = 'french')
+tdm <- DocumentTermMatrix(corpus)
+
+tdm_df<- as.data.frame(as.matrix(tdm))
+
+tdm_df<-tdm_df[ , -36]
+tdm_df<-tdm_df[ , -99]
+tdm_df<-tdm_df[ , -138]
+tdm_df<-tdm_df[ , -139]
+tdm_df<-tdm_df[ , -363]
+tdm_df
+
+matrix <- as.matrix(tdm_df) 
+matrix <- t(matrix)
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+dfw <- data.frame(word = names(words),freq=words)
+
+suppressWarnings({
+set.seed(1234)
+wordcloud(words = dfw$word, freq = dfw$freq, min.freq = 1,           
+          max.words=500, random.order=FALSE, rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+})
+```
+
+```{r}
+corpus <- Corpus(VectorSource(renaissance_df$Corpus))
+suppressWarnings({
+replace_function <- content_transformer(function(x, pattern, replacement) {
+  gsub(pattern, replacement, x)
+})
+
+corpus <- tm_map(corpus, replace_function, pattern = "manon aubry", replacement = "manon_aubry")
+corpus <- tm_map(corpus, replace_function, pattern = "marie toussaint", replacement = "marie_toussaint")
+corpus <- tm_map(corpus, replace_function, pattern = "jordan bardella", replacement = "jordan_bardella")
+corpus <- tm_map(corpus, replace_function, pattern = "sarah knafo", replacement = "sarah_knafo")
+corpus <- tm_map(corpus, replace_function, pattern = "raphaël glucksmann", replacement = "raphaël_glucksmann")
+corpus <- tm_map(corpus, replace_function, pattern = "olivier faure", replacement = "olivier_faure")
+corpus <- tm_map(corpus, replace_function, pattern = "eric ciotti", replacement = "eric_ciotti")
+corpus <- tm_map(corpus, replace_function, pattern = "union populaire", replacement = "union_populaire")
+
+corpus <- tm_map(corpus, replace_function, pattern = "françoisxavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois-xavier bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "françois bellamy", replacement = "bellamy")
+corpus <- tm_map(corpus, replace_function, pattern = "éric zemmour", replacement = "zemmour")
+corpus <- tm_map(corpus, replace_function, pattern = "marion maréchal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "marion marechal", replacement = "maréchal")
+corpus <- tm_map(corpus, replace_function, pattern = "emmanuel macron", replacement = "macron")
+
+corpus <- tm_map(corpus, replace_function, pattern = "von der leyen", replacement = "von_der_leyen")
+corpus <- tm_map(corpus, replace_function, pattern = "françois mitterrand", replacement = "françois_mitterrand")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien lachaud panot", replacement = "panot")
+corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacement = "panot")
+})
+
+corpus <- tm_map(corpus, stemDocument, language = 'french')
+tdm <- DocumentTermMatrix(corpus)
+
+tdm_df<- as.data.frame(as.matrix(tdm))
+
+tdm_df <- subset(tdm_df, select =-c(comm,depuis,mieux))
+tdm_df<-tdm_df[ , -38]
+tdm_df
+
+matrix <- as.matrix(tdm_df) 
+matrix <- t(matrix)
+words <- sort(rowSums(matrix),decreasing=TRUE) 
+dfw <- data.frame(word = names(words),freq=words)
+
+suppressWarnings({
+set.seed(1234)
+wordcloud(words = dfw$word, freq = dfw$freq, min.freq = 1,           
+          max.words=500, random.order=FALSE, rot.per=0.35,            
+          colors=brewer.pal(8, "Dark2"))
+})
+```
