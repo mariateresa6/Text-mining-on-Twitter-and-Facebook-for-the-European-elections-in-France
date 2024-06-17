@@ -2,31 +2,80 @@
 title: "Tweets"
 author: "Mariateresa Russo"
 date: "2024-05-06"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-French parties analyzed in this study:
-1)France Insoumise: France Insoumise is a left-wing political movement founded in 2016 by Jean-Luc Mélenchon, a long-time French politician. The movement opposes neoliberalism, globalization, and defends more progressive policies such as higher taxes on the wealthy and the fight against austerity. It defines itself as anticapitalist and promotes greater participatory democracy. At the European level, France Insoumise is affiliated with the European United Left/Nordic Green Left group in the European Parliament.
-2)Les Républicains: Les Républicains, previously known as UMP (Union for a Popular Movement), are a center-right party in France. The party was founded in 2002 by a broad coalition of center-right and right-wing parties. Les Républicains support conservative policies including free market principles, reducing public spending, and a stricter immigration policy. At the European level, Les Républicains are affiliated with the European People's Party (EPP), a political group that includes many other European center-right parties.
-3)Les Verts: Les Verts, or Europe Écologie-Les Verts (EELV), is an ecologist political party in France. It was founded in 1984 and is the main ecologist party in the country. Les Verts focuses on environmental protection, sustainability, and combating climate change. The party supports policies such as renewable energy, reducing greenhouse gas emissions, and promoting public transportation. At the European level, Les Verts are part of the Greens/European Free Alliance group in the European Parliament.
-4)Parti Socialiste: The Socialist Party is a center-left party in France. Founded in 1969, the party has traditionally supported social democratic policies such as social welfare, redistribution of resources, and increased economic regulation. However, over the years, the Socialist Party has undergone various ideological transformations. At the European level, the 5)Socialist Party is affiliated with the Progressive Alliance of Socialists and Democrats group in the European Parliament.
-Place Publique: Place Publique is a progressive political movement founded in 2018 by Raphaël Glucksmann, a French intellectual and journalist. The movement focuses on defending democracy, human rights, the environment, and progressive social policies. It was a significant player in the 2019 European elections in France. At the European level, Place Publique is associated with the Progressive Alliance of Socialists and Democrats group in the European Parliament.
-6)Rassemblement National: Rassemblement National, previously known as the National Front, is a far-right political party in France. Founded in 1972 by Jean-Marie Le Pen, the party is known for its anti-immigration, eurosceptic, and nationalist positions. It opposes globalization and supports policies of national sovereignty. At the European level, Rassemblement National is associated with the Identity and Democracy group in the European Parliament.
-7)Reconquête: Reconquête is a right-wing French political movement founded by Éric Zemmour, a prominent journalist and writer. The movement opposes immigration and promotes traditional conservative policies. Reconquête has gained attention for its positions against multiculturalism and for the defense of French identity. It is not associated with a specific group in the European Parliament.
-8)Renaissance: Renaissance is a progressive political movement founded by French President Emmanuel Macron in view of the 2019 European elections. The movement supports liberal, pro-European, and reformist policies. It focuses on modernizing the French economy, promoting European solidarity, and combating climate change. At the European level, Renaissance is associated with the Renew Europe group in the European Parliament.
+## French parties analyzed in this study
 
+1)France Insoumise: France Insoumise is a left-wing political movement
+founded in 2016 by Jean-Luc Mélenchon, a long-time French politician.
+The movement opposes neoliberalism, globalization, and defends more
+progressive policies such as higher taxes on the wealthy and the fight
+against austerity. It defines itself as anticapitalist and promotes
+greater participatory democracy. At the European level, France Insoumise
+is affiliated with the European United Left/Nordic Green Left group in
+the European Parliament. 2)Les Républicains: Les Républicains,
+previously known as UMP (Union for a Popular Movement), are a
+center-right party in France. The party was founded in 2002 by a broad
+coalition of center-right and right-wing parties. Les Républicains
+support conservative policies including free market principles, reducing
+public spending, and a stricter immigration policy. At the European
+level, Les Républicains are affiliated with the European People's Party
+(EPP), a political group that includes many other European center-right
+parties. 3)Les Verts: Les Verts, or Europe Écologie-Les Verts (EELV), is
+an ecologist political party in France. It was founded in 1984 and is
+the main ecologist party in the country. Les Verts focuses on
+environmental protection, sustainability, and combating climate change.
+The party supports policies such as renewable energy, reducing
+greenhouse gas emissions, and promoting public transportation. At the
+European level, Les Verts are part of the Greens/European Free Alliance
+group in the European Parliament. 4)Parti Socialiste: The Socialist
+Party is a center-left party in France. Founded in 1969, the party has
+traditionally supported social democratic policies such as social
+welfare, redistribution of resources, and increased economic regulation.
+However, over the years, the Socialist Party has undergone various
+ideological transformations. At the European level, the 5)Socialist
+Party is affiliated with the Progressive Alliance of Socialists and
+Democrats group in the European Parliament. Place Publique: Place
+Publique is a progressive political movement founded in 2018 by Raphaël
+Glucksmann, a French intellectual and journalist. The movement focuses
+on defending democracy, human rights, the environment, and progressive
+social policies. It was a significant player in the 2019 European
+elections in France. At the European level, Place Publique is associated
+with the Progressive Alliance of Socialists and Democrats group in the
+European Parliament. 6)Rassemblement National: Rassemblement National,
+previously known as the National Front, is a far-right political party
+in France. Founded in 1972 by Jean-Marie Le Pen, the party is known for
+its anti-immigration, eurosceptic, and nationalist positions. It opposes
+globalization and supports policies of national sovereignty. At the
+European level, Rassemblement National is associated with the Identity
+and Democracy group in the European Parliament. 7)Reconquête: Reconquête
+is a right-wing French political movement founded by Éric Zemmour, a
+prominent journalist and writer. The movement opposes immigration and
+promotes traditional conservative policies. Reconquête has gained
+attention for its positions against multiculturalism and for the defense
+of French identity. It is not associated with a specific group in the
+European Parliament. 8)Renaissance: Renaissance is a progressive
+political movement founded by French President Emmanuel Macron in view
+of the 2019 European elections. The movement supports liberal,
+pro-European, and reformist policies. It focuses on modernizing the
+French economy, promoting European solidarity, and combating climate
+change. At the European level, Renaissance is associated with the Renew
+Europe group in the European Parliament.
 
-European parties:
-(GUE/NGL) - European United Left/Nordic Green Left
-(EPP) - European People's Party
-Greens/EFA - Greens/European Free Alliance
-(S&D) - Progressive Alliance of Socialists and Democrats
-(ID) - Identity and Democracy
-(RE) - Renew Europe
-(ECR) - European Conservatives and Reformists
+## European parties
+
+(GUE/NGL) - European United Left/Nordic Green Left (EPP) - European
+People's Party Greens/EFA - Greens/European Free Alliance (S&D) -
+Progressive Alliance of Socialists and Democrats (ID) - Identity and
+Democracy (RE) - Renew Europe (ECR) - European Conservatives and
+Reformists
+
 ```{r}
 party <- c("France Insoumise", "Les Républicains", "Les Verts", "Parti Socialiste", "Place Publique", "Rassemblement National", "Reconquête", "Renaissance")
 european_movement <- c("GUE_NGL", "EPP", "Verts_ALE", "S&D", "S&D", "ID", "ECR", "RE")
@@ -40,7 +89,10 @@ parties <- data.frame(Party = party, European_movement = european_movement, Orie
 print(parties)
 ```
 
+## Start the analysis
+
 ```{r}
+suppressWarnings({
 library(readxl)
 library(tm)
 library(textstem)
@@ -52,16 +104,18 @@ library(tidymodels)
 library(koRpus)
 library(quanteda)
 library(udpipe)
-
+})
 ```
 
 The dataset
+
 ```{r}
 library(readxl)
 df <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 1)
 ```
 
 rename the labels
+
 ```{r}
 table(df$Profile)
 
@@ -95,14 +149,17 @@ ggplot(df, aes(x = Profile, fill = Network)) +
 
 ```
 
-START Text Preprocessing
+## Text Preprocessing
+
 ```{r}
 # Create corpus from df$Message
 corpus <- Corpus(VectorSource(df$Message))
 corpus
 #inspect(corpus)
 ```
+
 Functions
+
 ```{r}
 remove_function <-content_transformer(function(x, pattern) gsub(pattern,' ',x))
 
@@ -175,14 +232,10 @@ remove_text_retweet <- function(text) {
 
 ```
 
-Simple syntathic preprocessing: 
--trasformations in lower letters
--remove special characters 
--remove puntuaction
--remove words with 1 letter
--remove hashtags and urls
--remove stopwords
--remove spaces
+Simple syntathic preprocessing: -trasformations in lower letters -remove
+special characters -remove puntuaction -remove words with 1 letter
+-remove hashtags and urls -remove stopwords -remove spaces
+
 ```{r}
 suppressWarnings({
   #preprocessing
@@ -226,6 +279,7 @@ suppressWarnings({
 ```
 
 Bigrams creation
+
 ```{r}
 suppressWarnings({
 replace_function <- content_transformer(function(x, pattern, replacement) {
@@ -260,10 +314,8 @@ corpus <- tm_map(corpus, replace_function, pattern = "bastien panot", replacemen
 #inspect(corpus)
 ```
 
+-Stemming -Term Document Matrix -Bag of words with term frequency
 
--Stemming
--Term Document Matrix
--Bag of words with term frequency
 ```{r}
 suppressWarnings({
 #tdm without stemming
@@ -288,13 +340,16 @@ suppressWarnings({
 })
 "
 ```
+
+inspect the term-document matrix
+
 ```{r}
-# inspect the tdm
 tdm_df <- as.data.frame(as.matrix(tdm))
-tdm_df
+#tdm_df
 ```
 
-global words frequency and removing rare words
+## global words frequency and removing rare words
+
 ```{r}
 #column frequencies
 column_frequencies <- colSums(tdm_df)
@@ -327,26 +382,20 @@ frequency_df <- data.frame(t(column_frequencies))
 frequenze <- as.numeric(frequency_df[1, ])
 ordered_indices <- order(frequenze, decreasing = TRUE)
 ordered_frequency_df <- frequency_df[, ordered_indices]
-print(frequency_df)
-print(ordered_frequency_df)
-print(tdm_df)
 
 ```
 
 ```{r}
-#remove columns
-tdm_df <- subset(tdm_df, select = -c(celui,des,mati,sol,ceux,voi,sub,tres,not,tout,beaucoup,autr,comm,poch,une,environ,oui,là,ça,entre,encor,jusqu,icip,apres,toujour,non,moin,dont,depuis,plusieur,mieux,déjà,qua,quoi,pou))
+final_df <- subset(tdm_df, select = -c(celui,des,mati,sol,ceux,voi,sub,tres,not,tout,beaucoup,autr,comm,poch,une,environ,oui,là,ça,entre,encor,jusqu,icip,apres,toujour,non,moin,dont,depuis,plusieur,mieux,déjà,qua,quoi,pou))
 
-tdm_df<-tdm_df[ , -172]
-tdm_df<-tdm_df[ , -605]
-tdm_df<-tdm_df[ , -787]
-tdm_df<-tdm_df[ , -874]
-
-
-tdm_df
+final_df<-final_df[ , -172]
+final_df<-final_df[ , -605]
+final_df<-final_df[ , -787]
+final_df<-final_df[ , -874]
 ```
 
-Most popular words
+## Most popular words
+
 ```{r}
 term_freq <- colSums(as.matrix(tdm_df))
 names(term_freq) <- colnames(tdm_df)
@@ -361,8 +410,8 @@ ggplot(df_plot, aes(x = reorder(term, +freq), y = freq, fill = freq)) + geom_bar
 
 ```
 
+## Words cloud
 
-Words cloud
 ```{r}
 suppressWarnings({
 library(wordcloud)
@@ -384,16 +433,15 @@ wordcloud2(data=dfw, size=1.6, color='random-dark', shape='pentagon')
 
 ```
 
-words for each party   
+words for each party\
 CREATION OF THE CSV (GO TO FILE words per party.rmd)
+
 ```{r}
 suppressWarnings({
 corpus_content <- sapply(corpus, as.character)
 
 new_df <- data.frame(Corpus = corpus_content, Profile = df$Profile, Network = df$Network, Num_Likes = df$`Number of Likes`, Num_Comments = df$`Number of comments`, Num_Reactions = df$`Number of Reactions, Comments & Shares`, Interaction_Rate = df$`Post interaction rate`)
 
-
-print(new_df)
 print(dim(new_df))
 
 library(openxlsx)
@@ -403,19 +451,27 @@ write.xlsx(new_df, excel_file)
 
 ```
 
-Sentiment analysis with syuzhet
-https://www.saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm
-Sentiment analysis, also known as opinion mining, is an umbrella term for a number of processes for automatically calculating the degree of negativity or positivity in a text. 
-The dictionary for syuzhet is available for 108 languages and is able to classify positive and negative documents. It is able to classify the text in other 8 sentiment too.
+## Sentiment analysis with syuzhet
+
+<https://www.saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm>
+Sentiment analysis, also known as opinion mining, is an umbrella term
+for a number of processes for automatically calculating the degree of
+negativity or positivity in a text. The dictionary for syuzhet is
+available for 108 languages and is able to classify positive and
+negative documents. It is able to classify the text in other 8 sentiment
+too.
 
 Posts general sentiment
+
 ```{r}
+suppressWarnings({
 library(syuzhet)
 library(lubridate)
 library(ggplot2)
 library(scales)
 library(reshape2)
 library(dplyr)
+})
 
 tweets <- new_df$Corpus
 
@@ -508,7 +564,9 @@ ggplot(other_sentiments_orientation, aes(x = Sentiment, y = Count)) +
         legend.position = "none")
 
 ```
+
 same barplots but in different windows
+
 ```{r}
 # Filtra i dati per orientamento "left"
 left_sentiments <- other_sentiments_orientation %>%
@@ -554,70 +612,69 @@ ggplot(right_sentiments, aes(x = Sentiment, y = Count)) +
 
 ```
 
+## CA-GALT
 
+In order to have a better plot visualization, it may be useful removing
+more rare words Y (prima): a data frame with n rows (individuals) and p
+columns (frequencies) X (seconda): a data frame with n rows
+(individuals) and k columns (variables)
 
-
----------------------------------------------------------------------------------------------
-
-CA-GALT
-tdm:   
-Y: a data frame with n rows (individuals) and p columns (frequencies) parole sulle colonne
-X: a data frame with n rows (individuals) and k columns (variables) partiti sulle colonne 
-
-DA RIMUOVERE
 ```{r}
-post <- read_excel("C:/Users/maria/OneDrive/Documents/Mery/scuola/Social media analytics/Elezioni Francia Dati_grezzi.xlsx", sheet = 1)
-
-post$Profile[post$Profile %in% 'FranceInsoumise'] <- 'France_Insoumise'
-post$Profile[post$Profile %in%  'Parti Socialiste'] <- 'Parti_Socialiste'
-post$Profile[post$Profile %in%  'les Républicains'] <- 'Les_Republicains'
-post$Profile[post$Profile %in%  'EELV'] <- 'Les_Verts'
-post$Profile[post$Profile %in%  'Place publique'] <- 'Place_Publique'
-post$Profile[post$Profile %in%  'RECONQUÊTE'] <- 'Reconquete'
-post$Profile[post$Profile %in%  'Rassemblement National'] <- 'Rassemblement_National'
-post$Profile[post$Profile %in%  'La France insoumise'] <- 'France_Insoumise'
-post$Profile[post$Profile %in%  'partisocialiste'] <- 'Parti_Socialiste'
-post$Profile[post$Profile %in%  'lesRepublicains'] <- 'Les_Republicains'
-post$Profile[post$Profile %in%  'Europe Écologie-Les Verts'] <- 'Les_Verts'
-post$Profile[post$Profile %in%  'placepublique_'] <- 'Place_Publique'
-post$Profile[post$Profile %in%  'Reconquete_off'] <- 'Reconquete'
-post$Profile[post$Profile %in%  'RNational_off'] <- 'Rassemblement_National'
-
-post$Profile <- ifelse(post$Network == "FACEBOOK", paste0(post$Profile, "_f"),
-                     ifelse(post$Network == "TWITTER", paste0(post$Profile, "_t"), post$Profile))
-
-
 library(FactoMineR)
-library(quanteda)
 library(dplyr)
 
-#pulizia da fare meglio
-post$Message = gsub("’", ",", post$Message)
-post$Message = gsub("'", ",", post$Message)
-post$Message = gsub("[^\x01-\x7F]", "", post$Message)
-post.token = quanteda::tokens(post$Message, what = "word", remove_punct = T, remove_url = T, remove_number = T, remove_symbols = T, remove_separators = T )
-post.token = quanteda::tokens_tolower(post.token)
-post.token = tokens_select(post.token, stopwords("french"), selection = "remove")
-post.token %>% head()
+rownames(final_df) <- NULL
+final_df 
 
-#hashtags 
-hashtag_uno = convert(dfm(post.token), to = "data.frame") 
-hashtag_uno$Partito = post$Profile
-hashtag_uno = hashtag_uno %>%
-  group_by(Partito) %>%
-  dplyr::select(matches("^#")) %>%
+
+final_df$Profile = df$Profile
+
+#first df
+final_df = final_df %>% 
+  as.data.frame() %>%
+  mutate(Profile = substr(Profile, 1, nchar(Profile) - 2)) %>%
+  group_by(Profile) %>% 
   filter(rowSums(across(where(is.numeric)))!=0) %>%
-  summarise(across(everything(), sum))
+  summarise(across(everything(), sum)) 
+final_df
 
-hashtag_uno %>% head()
+#first df
+prima = final_df %>% select(-Profile)
 
-prima = hashtag_uno %>% as.data.frame() %>% dplyr::select(-Partito)
+#second df
+seconda = final_df %>%   
+  mutate(orientation = "centre") %>%
+  mutate(orientation = ifelse(Profile %in% c("France_Insoumise", "Parti_Socialiste", "Place_Publique"), "left", orientation),
+         orientation = ifelse(Profile %in% c("Reconquete", "Rassemblement_National", "Les Républicains"), "right", orientation)) %>%
+  select(Profile, orientation)
 
-seconda = hashtag_uno %>% mutate(orientamento = "centro") %>% mutate(orientamento = ifelse(Partito %in% c("pd", "avs"),"sinistra", orientamento))
-seconda = seconda %>% mutate(orientamento = ifelse(Partito %in% c("lega", "fi", "fdi"), "destra", orientamento))
-
-seconda = seconda %>% dplyr::select(Partito, orientamento) %>% mutate(Partito = as.factor(Partito), orientamento = as.factor(orientamento))
+seconda = seconda %>% dplyr::select(Profile,orientation) %>% 
+  mutate(Profile = as.factor(Profile), 
+         orientation = as.factor(orientation))
 
 cagal = CaGalt(prima, seconda, type = "n")
 plot.CaGalt(cagal)
+```
+
+```{r}
+cagal
+cagal$eig
+
+cagal$quali.var$coord %>% ggplot(aes(x = Dim.1, y = Dim.2)) + geom_point() + geom_text(label = rownames(cagal$quali.var$coord))
+cagal$quali.var$coord %>% ggplot(aes(x = Dim.1, y = Dim.3)) + geom_point() + geom_text(label = rownames(cagal$quali.var$coord))
+cagal$quali.var$coord %>% ggplot(aes(x = Dim.1, y = Dim.4)) + geom_point() + geom_text(label = rownames(cagal$quali.var$coord))
+
+
+t = cagal$freq$coord %>% as.data.frame()
+t$importanza = cagal$freq$contrib %>% rowSums(1:4)
+t = t %>% filter(importanza > mean(importanza))
+t$l = rownames(t)
+```
+
+```{r}
+t %>% ggplot(aes(x = Dim.1, y = Dim.2)) + geom_point() + geom_label(label = t$l, hjust = 0, nudge_x = 0.05)
+
+t %>% ggplot(aes(x = Dim.1, y = Dim.3)) + geom_point() + geom_label(label = t$l)
+
+t %>% ggplot(aes(x = Dim.1, y = Dim.4)) + geom_point() + geom_label(label = t$l)
 ```
